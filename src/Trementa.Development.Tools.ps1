@@ -32,7 +32,7 @@
 #>
 
 param(
-	[string] $defaultRoot = $(if ($_ -eq $null -Or -Not (Test-Path $_ -PathType Container)) { Get-Location } else { $_ }),
+	[string] $defaultRoot = $($r = resolve-path $_; if ($r -eq $null -Or -Not (Test-Path $r -PathType Container)) { Get-Location } else { $r }),
 	[Switch] $createEnvJson,
 	[Switch] $install,
 	[Switch] $continue
@@ -846,7 +846,7 @@ function Invoke-Initialize {
 
 function Initialize
 {
-	$script:moduleVersion = "3.0.1"
+	$script:moduleVersion = "3.0.5"
 	$script:isModule = $MyInvocation.MyCommand.Name.EndsWith('.psm1')
 	$script:CACHE_VARIABLE_NAME = "TrementaDevelopment_Cache"
 
