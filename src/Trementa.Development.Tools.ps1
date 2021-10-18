@@ -32,11 +32,12 @@
 #>
 
 param(
-	[string] $defaultRoot = $($r = resolve-path $_; if ($r -eq $null -Or -Not (Test-Path $r -PathType Container)) { Get-Location } else { $r }),
+	[string] $defaultRoot,
 	[Switch] $createEnvJson,
 	[Switch] $install,
 	[Switch] $continue
 )
+$defaultRoot = if($defaultRoot){resolve-path $defaultRoot}else{get-location}
 
 <#
 .SYNOPSIS
@@ -796,6 +797,8 @@ function Install-ExternalModules
 }
 
 function Install-Tools {
+	License
+
 	"This will install $($(Get-Item $PSCommandPath).Basename) modules version $($moduleVersion)"
 	if (!$IsAdmin) {
 		Write-Host -ForegroundColor Red -BackgroundColor Black "*** You are not running in administrative mode and therefore the modules won't be signed"
@@ -815,7 +818,6 @@ function Install-Tools {
 			return
 		}
 		if ($key -eq 'Y') {
-			License
 			if ($IsAdmin) {	Create-Certificate >$null }
 			Copy-Modules
 			# Install-ExternalModules
