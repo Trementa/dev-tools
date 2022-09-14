@@ -3,14 +3,13 @@
 	Custom general profile with added functionality for development.
 .Description
 	Multiple helper tools for different development tasks.
-	
-.Todo
-	Isolate project specific features in a separate script.
+	Forked from https://github.com/Trementa/dev-tools
+	The license permits any use.
 	
 .License
 	MIT License
 
-	Copyright (c) 2020 Trementa AB
+	Copyright (c) 2022 Trementa AB
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -35,24 +34,74 @@ param(
 	[string] $defaultRoot,
 	[Switch] $createEnvJson,
 	[Switch] $install,
-	[Switch] $continue
+	[Switch] $continue,
+	[Switch] $exit
 )
 $defaultRoot = if($defaultRoot){resolve-path $defaultRoot}else{get-location}
 
 <#
 .SYNOPSIS
-	Launch powershell elevated (administrator mode)
+	Use default process run arguments and retrieve path to executable for running process using the rules:
+	1) If it is running in the context of Windows Terminal use that as the executable without arguments.
+	2) If not in a Windows Terminal context just return the path to the executable of the current process.
 #>
-function Run-Elevated {
-	Start-Process (Get-PowershellName) -WorkingDirectory (Get-Location).Path -Verb runAs -ArgumentList "-NoExit", "-Command", ("cd " + (Get-Location).Path)
+function Get-TerminalPath {
+	# Running in Windows Terminal?
+	$process = (get-process -id $pid).Parent
+	do {
+		if($process.Name -eq 'windowsterminal' -and (test-path (get-command 'wt.exe').Path)) {
+			return @{Exe = "wt.exe"; Args = @() }
+		}
+		$process = $process.Parent
+	} while($process)
+	
+	# Not windows terminal, use current process
+	return Get-PowershellPath
+}
+
+function Get-PowershellPath {
+	$cd = (Get-Location).Path
+	return @{Exe = (get-process -id $pid).Path; Args = "-NoExit", "-Command", "cd $($cd)"}
 }
 
 <#
 .SYNOPSIS
-	Launch new powershell instance
+	Stop the process running the parent container.
+	In effect closes the current window.
 #>
-function New-Powershell {
-	Start-Process (Get-PowershellName) -WorkingDirectory (Get-Location).Path -ArgumentList "-NoExit", "-Command", ("cd " + (Get-Location).Path)
+function Stop-Terminal {
+	# Running in Windows Terminal?
+	$pwshProcess = get-process -id $pid
+	$process = $pwshProcess
+	do {
+		$process = $process.Parent
+		if($process.Name -eq 'windowsterminal') {
+			stop-process $process
+		}
+		if($process.Name -eq $pwshProcess.Name) {
+			$pwshProcess = $process
+		}
+	} while($process)
+	
+	stop-process $pwshProcess
+}
+
+<#
+.SYNOPSIS
+	Launch terminal elevated (administrator mode)
+#>
+function Run-Elevated {
+	$pwsh = Get-TerminalPath
+	Start-Process $pwsh.Exe -Verb runAs -ArgumentList $pwsh.Args
+}
+
+<#
+.SYNOPSIS
+	Launch new terminal instance
+#>
+function New-terminal {
+	$pwsh = Get-TerminalPath
+	Start-Process $pwsh.Exe -ArgumentList $pwsh.Args
 }
 
 <#
@@ -65,57 +114,55 @@ function New-Powershell {
 	Get-Process -Id $PID | Select-Object -ExpandProperty Path | ForEach-Object { Invoke-Command { & "$_" } -NoNewScope }
 	You will, of course, lose all your variables etc. from the previous session.
 #>
-
-
 function Reload {
-	# function Get-PowershellName {
-		# (get-process -Id $Pid).ProcessName
-		
-		# function f {
-			# $ParentProcessIds = Get-CimInstance -Class Win32_Process -Filter "Name = 'powershell.exe'"
-		# }	
-	# }
-
-	Get-Process -Id $PID | Select-Object -ExpandProperty Path | ForEach-Object { Invoke-Command { & "$_" } -NoNewScope }
-	
-	# & (Get-PowershellName)	
+	$pwsh = Get-PowershellPath
+	Invoke-Command { & "$($pwsh.Exe)" } -NoNewScope
 }
 
 <#
 .SYNOPSIS
-	Default function name for custom Powershell prompt
+	Select folder from query
 #>
-function prompt {	
-	<#
-	.SYNOPSIS
-		Create configuration hierarchially from all env.json files.
-	#>
-	function Create-Configuration {
-		function Search($Path)
-		{
-			if ($Path) {
-				Search(Split-Path $Path -Parent)
-				Set-FolderLabels $Path
+function Select-Directory {
+	param([string] $path)
+
+	$global:counter = 1;
+	$cd = (Get-Location).Path.Length
+	$directories = @(Get-ChildItem -Recurse -Directory |
+					 where {$_.FullName -like $path} |
+					 Select-Object @{Name = "Id"; Expression = { $global:counter; $global:counter++ } }, Name, FullName, @{Name = "Path"; Expression = { $_.FullName.SubString($cd) } })
+
+	if ($directories.Count -eq 0) {
+		"No such path $($path)"
+		return
+	}
+
+	if ($directories.Count -gt 1) {
+		$directories | Format-Table -Property @{Label = "#"; Expression = { $_.Id } }, Path -AutoSize | Out-Host
+
+		while($value -eq $NULL -or $value -gt $directories.Count -or $value -le 0) {
+			$input = Read-Host "Select folder (1-$($directories.Count))"
+			if (!$input) {
+				return $null
 			}
+			$value = $input -as [Int]		
 		}
-		
-		function Set-FolderLabels {
-			param([string] $Path)
-			$envJson = Join-Path $Path 'env.json'
-			if (Test-Path $envJson) {
-				Push-Location $Path
-				Get-Content $envJson | ConvertFrom-Json | Get-ObjectMembers | ForEach-Object {
-					$Path = Resolve-Path $_.Value
-					if ($Path -and (Test-Path $Path)) {
-						Invoke-Expression "function global:$($_.Key) {Set-Location '$($Path)'}"
-						if ($isModule) { Export-ModuleMember $_.Key }
-						Set-Alias -Name $_.Key -Value "global:$($_.Key)" -Scope Global
-					}
-				}
-				Pop-Location
-			}
-		}
-		
+	}
+	else {
+		$value = 1
+	}
+	push-location $($directories[$value - 1].FullName) -StackName devstack 						
+}
+
+<#
+.SYNOPSIS
+	Create local configuration from all devenv.config files in current directory up to the root directory.
+	Sets directory labels and selects visual studio instance.
+#>
+function Apply-Configuration
+{
+	$cd = get-location
+	try {
 		function Get-ObjectMembers {
 			[CmdletBinding()]
 			Param(
@@ -127,110 +174,170 @@ function prompt {
 				[PSCustomObject]@{Key = $key; Value = $obj."$key" }
 			}
 		}
-		Search(Get-Location)			
-	}
 
-	<#
-	.SYNOPSIS
-		Set powershell window title.
-	#>
-	function Set-WindowTitle {
-		function Get-WindowTitle {
-			if ($isAdmin) {
-				"[ADMIN] "
-			}
-			else {
-				""
-			}
-			
-			$isGitRepository = git rev-parse --is-inside-work-tree
-			if ($LastExitCode -eq 128 -or $isGitRepository -eq $false) {
-				"Not a Git repository"
-			}
-			else {
-				$symbolicref = git symbolic-ref HEAD
-				if ($NULL -ne $symbolicref) {
-					"'" + (Split-Path -Leaf (git remote get-url origin)) + "' "
-					$symbolicref = $symbolicref.substring($symbolicref.LastIndexOf("/") + 1)
-					$symbolicref + ": "
-					$status = git status --porcelain #--untracked-files=all
-
-					if ( $status ) {
-						$matches = [regex]::matches([system.string]::join("`n", $status), "(?m)^.{2}")
-						$statusTotals = @{} # Create hash table
-
-						foreach ( $match in $matches ) {
-							if ( ![string]::IsNullOrEmpty($match.Value) ) {
-								$matchValue = $match.Value.Replace(" ", "-")
-
-								if ( !$statusTotals.ContainsKey($matchValue) ) {
-									$statusTotals.Add($matchValue, 1)
-								}
-								else {
-									$statusTotals.Set_Item($matchValue, $statusTotals.Get_Item($matchValue) + 1)
+		function Get-DevEnvConfig {
+			param([string] $cd)
+			$labelDirMapping = @()
+			$envJson = Join-Path $cd 'devenv.config'
+			if (Test-Path $envJson) {
+				push-location $cd
+					$json = Get-Content $envJson | ConvertFrom-Json
+					if($json.visualstudio) { $vsversion = $json.visualstudio }
+					($json.folders) | Get-ObjectMembers | ForEach-Object {
+						if($_.Value){
+							if($_.Value.StartsWith("*"))
+							{
+								$labelDirMapping += @{$_.Key = $_.Value }
+							}
+							else
+							{
+								$absPath = Resolve-Path $_.Value
+								if (Test-Path $absPath) {
+									$labelDirMapping += @{$_.Key = $absPath.Path }
 								}
 							}
 						}
+					}
+				pop-location
+			}
+			return @($labelDirMapping, $vsversion)
+		}
 
-						foreach ( $dictEntry in $statusTotals.GetEnumerator() | Sort-Object Name) {
-							[string]::format("{0}:{1} ", $dictEntry.Name, $dictEntry.Value)
+		function Search-Configuration {
+			param([string] $path)
+			if($path) {
+                ($mapP, $vsvP) = Search-Configuration(Split-Path $path -Parent)
+                ($map, $vsv) = Get-DevEnvConfig($path)
+	        }
+
+            $vsv = if($vsp) { $vsp } else { $vsvP }
+            return ($mapP + $map, $vsv)
+        }
+
+		($labelMap, $vsversion) = Search-Configuration(Get-Location)
+		foreach($map in $labelMap) {
+			$label = $map.Keys[0]
+			$path = $map[$label]
+			if($path.StartsWith("**"))
+			{
+				$query = "function global:set_$($label) { Select-Directory '$($path)'}"
+			}
+			elseif($path.StartsWith("*"))
+			{
+				$query = "function global:set_$($label) { `$cd = gci -recurse -Directory | where {`$_.FullName -like '$($path)'} | select -first 1; if(`$cd) { push-location `$cd -StackName devstack } else { ""No '$($path)' folder found"" }}"
+			}
+			else
+			{
+				$query = "function global:set_$($label) {Set-Location '$($path)'}"
+			}
+			Invoke-Expression $query
+			if ($isModule) { Export-ModuleMember $label }
+			Set-Alias -Name $label -Value "set_$($label)" -Scope Global
+		}
+        return ($labelMap, $vsversion)
+	} catch{}
+	finally {
+		set-location $cd >$null
+	}
+}
+
+<#
+.SYNOPSIS
+	Method that creates the window title
+#>
+function Get-WindowTitle {
+	if ($isAdmin) {	$prefix = "[ADMIN] "}
+	else { $prefix = ""	}
+
+	try {
+		$isGitRepository = git rev-parse --is-inside-work-tree
+
+		if ($LastExitCode -ne 128 -and $isGitRepository) {
+			$symbolicref = git symbolic-ref HEAD
+
+			if ($NULL -ne $symbolicref) {
+				$title += "'" + (Split-Path -Leaf (git remote get-url origin)) + "' "
+				$symbolicref = $symbolicref.substring($symbolicref.LastIndexOf("/") + 1)
+				$title += $symbolicref + ": "
+				$status = git status --porcelain #--untracked-files=all
+				
+				if ( $status ) {
+					$matches = [regex]::matches([system.string]::join("`n", $status), "(?m)^.{2}")
+					$statusTotals = @{}
+					foreach ( $match in $matches ) {
+						if ( ![string]::IsNullOrEmpty($match.Value) ) {
+							$matchValue = $match.Value.Replace(" ", "-")
+
+							if ( !$statusTotals.ContainsKey($matchValue) ) {
+								$statusTotals.Add($matchValue, 1)
+							}
+							else {
+								$statusTotals.Set_Item($matchValue, $statusTotals.Get_Item($matchValue) + 1)
+							}
 						}
 					}
-					else {
-						"nothing to commit (working dir clean)"
+					foreach ( $dictEntry in $statusTotals.GetEnumerator() | Sort-Object Name) {
+						$title += [string]::format("{0}:{1} ", $dictEntry.Name, $dictEntry.Value)
 					}
 				}
+				else {
+					$title += "nothing to commit (working dir clean)"
+				}
 			}
+			return $prefix + $title
 		}
+	} catch { return $prefix + " Error: $($_)" }
+	return $prefix + "Not a Git repository"
+}
+
+<#
+.SYNOPSIS
+	Clear solution cache after a repository change.
+#>
+function ManageRepositoryChanges {
+	function Get-GitRepoInfo {
+		git remote show origin | 
+		foreach-object {
+			$repoName   = if ($_ -match "fetch url: .*\/(.*)") { $matches[1] }
+			$fetchUrl   = if ($_ -match "fetch url: (.*)") { $matches[1] }
+			$pushUrl    = if ($_ -match "push  url: (.*)") { $matches[1] }
+			$headBranch = if ($_ -match "head branch: (.*)") { $matches[1] }
+		}
+
+		$branchName = git symbolic-ref HEAD
+		$branchName = $branchName.substring($branchName.LastIndexOf("/") +1)
 		
-		$Host.UI.RawUI.WindowTitle = Get-WindowTitle
+		@{ 
+			branchName = $branchName
+			fetchUrl   = $fetchUrl
+			headbranch = $headbranch
+			pushUrl    = $pushUrl
+			repoName   = $repoName
+		}	
 	}
-
-	<#
-	.SYNOPSIS
-		Clear solution cache after a repository change.
-	#>
-	function ManageRepositoryChanges {
-		function Get-GitRepoInfo {
-			git remote show origin | 
-			foreach-object {
-				$repoName   = if ($_ -match "fetch url: .*\/(.*)") { $matches[1] }
-				$fetchUrl   = if ($_ -match "fetch url: (.*)") { $matches[1] }
-				$pushUrl    = if ($_ -match "push  url: (.*)") { $matches[1] }
-				$headBranch = if ($_ -match "head branch: (.*)") { $matches[1] }
-			}
-
-			$branchName = git symbolic-ref HEAD
-			$branchName = $branchName.substring($branchName.LastIndexOf("/") +1)
-			
-			@{ 
-				branchName = $branchName
-				fetchUrl   = $fetchUrl
-				headbranch = $headbranch
-				pushUrl    = $pushUrl
-				repoName   = $repoName
-			}	
-		}
-		
-		$gitSource = Get-GitRepoInfo
-		if ($null -ne $gitSource) {
-			# Did the branch change?
-			if ($gitSource -ne $script:gitSource) {
-				Write-Host "Clearing solution cache: git source changed from $($script:gitSource) to $($gitSource)"
-				Set-Variable -Name $script:CACHE_VARIABLE_NAME -Scope Global -Value @{}
-				$script:gitSource = $gitSource
-			}
+	
+	$gitSource = Get-GitRepoInfo
+	if ($null -ne $gitSource) {
+		# Did the branch change?
+		if ($gitSource -ne $script:gitSource) {
+			Write-Host "Clearing solution cache: git source changed from $($script:gitSource) to $($gitSource)"
+			Set-Variable -Name $script:CACHE_VARIABLE_NAME -Scope Global -Value @{}
+			$script:gitSource = $gitSource
 		}
 	}
+}
 
-	Create-Configuration >$null
-	Set-WindowTitle >$null
-
+<#
+.SYNOPSIS
+	Method that creates the prompt string
+#>
+function Get-Prompt
+{
 	# History ID
 	$HistoryId = $MyInvocation.HistoryId
 	# Uncomment below for leading zeros
 	# $HistoryId = '{0:d4}' -f $MyInvocation.HistoryId
-	Write-Host -Object "$HistoryId`: " -NoNewline -ForegroundColor Cyan
+	# Write-Host -Object "$HistoryId`: " -NoNewline -ForegroundColor Cyan
  
 	## Path
 	$Drive = $pwd.Drive.Name
@@ -256,6 +363,46 @@ function prompt {
 	else {
 		"$Drive`:\$PwdPath> "
 	}
+}
+
+<#
+.SYNOPSIS
+	Default function name for custom Powershell prompt
+#>
+function prompt {
+	<#
+	.SYNOPSIS
+		Set powershell window title.
+	#>
+	function Set-WindowTitle {
+		$Host.UI.RawUI.WindowTitle = Get-WindowTitle
+	}
+
+	function Clear-StatusBar {
+		$pos = $host.UI.RawUI.CursorPosition
+		$maxY = $host.UI.RawUI.WindowSize.Height - 1
+		$width = $host.UI.RawUI.WindowSize.Width
+		$host.UI.RawUI.CursorPosition = @{ x = 0; y = $maxY }
+		write-host -nonewline " ".PadRight($width, ' ')
+		$host.UI.RawUI.CursorPosition = $pos		
+	}
+# https://powershellone.wordpress.com/2021/04/06/control-split-panes-in-windows-terminal-through-powershell/
+	function Set-StatusBar {
+		$pos = $host.UI.RawUI.CursorPosition
+		$maxY = $host.UI.RawUI.WindowSize.Height - 1
+		$width = $host.UI.RawUI.WindowSize.Width
+		$host.UI.RawUI.CursorPosition = @{ x = 0; y = $maxY }
+		$text = $Host.UI.RawUI.WindowTitle
+		if($pos.y -eq $maxY - 10) { write-host ''; $pos.y = $pos.y - 11 }
+		write-host -nonewline -foregroundcolor black -backgroundcolor green $text.PadRight($width, ' ')
+		$host.UI.RawUI.CursorPosition = $pos
+	}
+
+	#Clear-StatusBar >$null
+	Apply-Configuration >$null
+	Set-WindowTitle >$null
+	#Set-StatusBar >$null
+	Get-Prompt
 }
 
 <#
@@ -302,23 +449,6 @@ function Set-Devenv {
 
 		Set-Alias -Name DevEnv -Value "$devEnv" -Scope Global
 		"DevEnv: $devEnvDisplayName, $devEnvInstallationName (latest detected version)"
-		
-		$devEnvPath = & $vswhere -latest -prerelease -property installationPath
-		if (Test-Path "$devEnvPath\MSBuild") {
-			# Quick search
-			$msbuilds = Get-Childitem -Path "$devEnvPath\MSBuild" -Include MSBuild.exe -File -Recurse -ErrorAction SilentlyContinue | Where-Object DirectoryName -NotLike *amd64*
-		}
-		else {
-			$msbuilds = Get-Childitem -Path $devEnvPath -Include MSBuild.exe -File -Recurse -ErrorAction SilentlyContinue | Where-Object DirectoryName -NotLike *amd64*
-		}
-		 
-		if ($msbuilds -is [array]) {
-			$msbuild = $msbuilds[0]
-		}
-		else {
-			$msbuild = $msbuilds
-		}
-		Set-Alias -Name MSBuild -Value $msbuild -Scope Global
 	}
 	else {
 		Write-Host "Visual Studio not installed" -ForegroundColor Red
@@ -327,37 +457,13 @@ function Set-Devenv {
 
 <#
 .SYNOPSIS
-	Show all solutions in folder.
-	Run as background job?
+	Show all solutions in folders recursively.
 #>
 function Select-Solution {
-	# $solutions = GetOrAdd-Cache -Key (Get-Location).Path -ScriptBlock {
-	$solutionsGenerator = {
-		$global:counter = 1;
-		$cd = (Get-Location).Path.Length
-		return @(Get-ChildItem *.sln -Recurse | Sort-Object -Property Name |
-			Select-Object @{Name = "Id"; Expression = { $global:counter; $global:counter++ } }, Name, FullName, @{Name = "Path"; Expression = { $_.FullName.SubString($cd) } })
-	}
-
-	$solutions = $solutionsGenerator.Invoke()
-	if ($solutions.Count -eq 0) {
-		return ""
-	}
-	if ($solutions.Count -gt 1) {
-		$solutions | Format-Table -Property @{Label = "#"; Expression = { $_.Id } }, Name, Path -AutoSize | Out-Host
-		do {
-			$input = Read-Host "Select solution (1-$($solutions.Count))"
-			if (!$input) {
-				return $null
-			}
-			$value = $input -as [Int]		
-			$valid = $value -ne $NULL -and $value -le $solutions.Count -and $value -gt 0
-		} until($valid)
-	}
-	else {
-		$value = 1
-	}
-	return $($solutions[$value - 1].FullName)
+	param(
+		[int] $value,
+		[Switch] $force
+	)
 
 	function GetOrAdd-Cache {
 		[cmdletbinding()]
@@ -385,11 +491,38 @@ function Select-Solution {
 
 		$cachedValue
 	}
+	
+	$solutions = GetOrAdd-Cache -Key (Get-Location).Path -ScriptBlock {
+		$global:counter = 1;
+		$cd = (Get-Location).Path.Length
+		return @(Get-ChildItem *.sln -Recurse | Sort-Object -Property Name |
+			Select-Object @{Name = "Id"; Expression = { $global:counter; $global:counter++ } }, Name, FullName, @{Name = "Path"; Expression = { $_.FullName.SubString($cd) } })
+	}
+
+	if ($solutions.Count -eq 0) {
+		return ""
+	}
+	if ($solutions.Count -gt 1) {
+		$solutions | Format-Table -Property @{Label = "#"; Expression = { $_.Id } }, Name, Path -AutoSize | Out-Host
+		while($value -eq $NULL -or $value -gt $solutions.Count -or $value -le 0) {
+			$input = Read-Host "Select solution (1-$($solutions.Count))"
+			if (!$input) {
+				return $null
+			}
+			$value = $input -as [Int]		
+		}
+	}
+	else {
+		$value = 1
+	}
+	return $($solutions[$value - 1].FullName)
 }
 
 <#
 .SYNOPSIS
 	Select solution and open with Visual Studio.
+.PARAMETER
+	Solution - specific sln-file or index-number
 #>
 function Edit-Solution {
 	param
@@ -397,10 +530,14 @@ function Edit-Solution {
 		[string] $solution
 	)
 
-	if (!$solution) { $solution = Select-Solution }
+    $index = $solution -as [int]
+	if (!$solution -or $index -gt 0) { $solution = Select-Solution($index) }
 	if ($solution) {
 		Write-Host "Opening solution $solution"
 		DevEnv "$solution"
+	}
+	else {
+		"Unknown solution"
 	}
 }
 
@@ -593,6 +730,58 @@ function Get-GitRepositories {
 	Get-ChildItem . -Attributes Directory+Hidden -ErrorAction SilentlyContinue -Filter ".git" -Recurse | ForEach-Object { Write-Host $_.Parent.Name }
 }
 
+function Get-GitStatus {
+	# Escape and colour codes for use in virtual terminal escape sequences
+	$esc = [char]27
+	$red = '31'
+	$green = '32'
+
+	# Get child folders of the current folder which contain a '.git' folder
+	Get-ChildItem -Path . -Attributes Directory+Hidden -Recurse -Filter '.git' | 
+	ForEach-Object { 
+		# Assume the parent folder of this .git folder is the working copy
+		$workingCopy = $_.Parent
+		$repositoryName = $workingCopy.Name
+
+		# Change the working folder to the working copy
+		Push-Location $workingCopy.FullName
+
+		# Update progress, as using -AutoSize on Format-Table
+		# stops anything being written to the terminal until 
+		# *all* processing is finished
+		Write-Progress `
+			-Activity 'Check For Local Changes' `
+			-Status 'Checking:' `
+			-CurrentOperation $repositoryName
+
+		# Get a list of untracked/uncommitted changes
+		[Array]$gitStatus = $(git status --porcelain) | 
+			ForEach-Object { $_.Trim() }
+
+		# Status includes VT escape sequences for coloured text
+		$status = ($gitStatus) `
+			? "$esc[$($red)mCHECK$esc[0m" `
+			: "$esc[$($green)mOK$esc[0m"
+
+		# For some reason, the git status --porcelain output returns 
+		# two '?' chars for untracked changes, when all other statuses 
+		# are one character... this just cleans it up so that it's 
+		# nicer to scan visually in the terminal
+		$details = ($gitStatus -replace '\?\?', '?' | Out-String).TrimEnd()
+
+		# Change back to the original directory
+		Pop-Location
+
+		# Return a simple 'row' object containing all the info
+		[PSCustomObject]@{ 
+			Status = $status
+			'Working Copy' = $repositoryName
+			Details = $details
+		}
+	} |
+	Format-Table -Wrap -AutoSize	
+}
+
 function Get-Commands {
 	[PsObject[]]$HelpArray = @()
 	$HelpArray += [pscustomobject]@{ Command = "Clean-Solution"  			; Shorthand = "cln"; Description = "Clean solution structure from artifacts" }
@@ -608,10 +797,11 @@ function Get-Commands {
 	$HelpArray += [pscustomobject]@{ Command = "Open-WindowsExplorer"		; Shorthand = "we"; Description = "Open Windows Explorer in the current directory" }
 	$HelpArray += [pscustomobject]@{ Command = "Reload"          			; Description = "Reload scripts" }
 	$HelpArray += [pscustomobject]@{ Command = "Remove-ProfileLoader"		; Description = "Remove profile loader" }
-	$HelpArray += [pscustomobject]@{ Command = "Run-Elevated"     			; Shorthand = "admin, sudo"; Description = "Launch PowerShell in Admin-mode" }
+	$HelpArray += [pscustomobject]@{ Command = "Run-Elevated"     			; Shorthand = "admin, sudo"; Description = "Launch terminal in Admin-mode" }
 	$HelpArray += [pscustomobject]@{ Command = "Set-ProfileLoader"			; Description = "Install environment profile loader script" }
 	$HelpArray += [pscustomobject]@{ Command = "Sign-File"       			; Description = "Sign file with private key" }
 	$HelpArray += [pscustomobject]@{ Command = "Start-Docker"   			; Description = "Start Docker" }
+	$HelpArray += [pscustomobject]@{ Command = "Stop-Terminal"   			; Shorthand = "quit"; Description = "Stop terminal process (close window)" }
 	$HelpArray += [pscustomobject]@{ Command = "Test-All"        			; Description = "Run all tests from current directory" }
 	$HelpArray += [pscustomobject]@{ Command = "Unblock"         			; Description = "Unblocks all file in current or specified folder with subfolders" }
 	$HelpArray += [pscustomobject]@{ Command = "Get-ToolsHelp"     			; Shorthand = "helpme"; Description = "Show this list again" }
@@ -658,8 +848,10 @@ function Copy-Modules {
 	$moduleDestination = join-path $moduleDestination "Modules"
 	"Installing modules in '$($moduleDestination)'"
 	$root = split-path $PSCommandPath
+
+	# Copy files
 	$search = join-path $root *.ps1
-	Get-ChildItem $search |
+	Get-ChildItem $search -file |
 	ForEach-Object {
 		$scriptDir = $_.BaseName
 		$destination = join-path $moduleDestination "$scriptDir"
@@ -674,8 +866,20 @@ function Copy-Modules {
 
 		$destManifest = join-path $destination "$($scriptDir).psd1"		
 		"Creating module manifest '$($destManifest)'"
-		New-ModuleManifest -RootModule "$($scriptDir).psm1" -Path "$destManifest" -ModuleVersion $moduleVersion -Author "Jörgen Pramberg" -CompanyName "Trementa AB" -Description "Trementa Development Toolkit" -FunctionsToExport "*"	
+		New-ModuleManifest -RootModule "$($scriptDir).psm1" -Path "$destManifest" -ModuleVersion $moduleVersion -Author "Jörgen Pramberg" -CompanyName "Trementa AB" -Description "Development Toolkit" -FunctionsToExport "*"	
 	}
+
+	# Copy directories
+	get-childitem $search -Directory | foreach-object {
+		copy-item $_ $moduleDestination -Force >$null
+		if($IsAdmin) {
+			$destination = join-path $moduleDestination $_.BaseName
+			# .psm1 or binaries; .exe or .dll
+			get-childitem $destination -Exclude *.psd1 -File | foreach-object { Sign_File $_.FullName }
+		}
+		Import-Module $_.BaseName
+	}
+	
 	"Modules installation successful"
 }
 
@@ -703,7 +907,7 @@ function License {
 	'
 MIT License
 
-Copyright (c) 2020 Trementa AB
+Copyright (c) 2022 Trementa AB
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -742,19 +946,25 @@ function Export {
 	Export-ModuleMember "Clean-Solution"
 	Export-ModuleMember "Copy-Modules"
 	Export-ModuleMember "Create-Certificate"
+	Export-ModuleMember "Create-Configuration"
 	Export-ModuleMember "Edit-Profile"
 	Export-ModuleMember "Edit-Solution"
 	Export-ModuleMember "Get-CommandDefinition"
 	Export-ModuleMember "Get-GitRepositories"
+	Export-ModuleMember "Get-GitStatus"
 	Export-ModuleMember "Get-Help"
-	Export-ModuleMember "Get-PowershellName"
+	Export-ModuleMember "Get-TerminalPath"
+	Export-ModuleMember "Get-Prompt"
+	Export-ModuleMember "Get-WindowTitle"
 	Export-ModuleMember "Get-PublicIP"
 	Export-ModuleMember "Git-Diff"
 	Export-ModuleMember "Install-Tools"
 	Export-ModuleMember "Invoke-Initialize"
+	Export-ModuleMember "Is-Admin"
 	Export-ModuleMember "License"
-	Export-ModuleMember "New-Powershell"
+	Export-ModuleMember "New-Terminal"
 	Export-ModuleMember "Open-WindowsExplorer"
+	Export-ModuleMember "Refresh-Env"
 	Export-ModuleMember "Reload"
 	Export-ModuleMember "Remove-ACL"
 	Export-ModuleMember "Remove-ProfileLoader"
@@ -765,17 +975,26 @@ function Export {
 	Export-ModuleMember "Set-ProfileLoader"
 	Export-ModuleMember "Sign-File"
 	Export-ModuleMember "Start-Docker"
+	Export-ModuleMember "Stop-Terminal"
 	Export-ModuleMember "Test-All"
 	Export-ModuleMember "prompt"
 	Export-ModuleMember "unblock"
+}
+
+function Popit
+{
+	pop-location -StackName devstack
 }
 
 function Alias{
 	Set-Alias -Name admin -Value Run-Elevated -Scope Global
 	Set-Alias -Name cln -Value Clean-Solution -Scope Global
 	Set-Alias -Name edit -Value notepad -Scope Global
+	Set-Alias -Name gs -Value Get-GitStatus -Scope Global
 	Set-Alias -Name gd -Value Git-Diff -Scope Global
 	Set-Alias -Name helpme -Value Get-ToolsHelp -Scope Global
+	Set-Alias -Name pop -Value Popit -Scope Global
+	Set-Alias -Name quit -Value Stop-Terminal -Scope Global
 	Set-Alias -Name sln -Value Edit-Solution -Scope Global
 	Set-Alias -Name sudo -Value admin -Scope Global
 	Set-Alias -Name we -Value Open-WindowsExplorer -Scope Global
@@ -790,9 +1009,11 @@ function Get-ToolsHelp {
 	Get-Commands | Format-Table -Property Command, Shorthand, Description -AutoSize
 }
 
-function Install-ExternalModules
+function Install-Other
 {
-	if($isadmin) { Install-Module -Name PoshRSJob }
+	if($isadmin) {
+		#Install-Module -Name PoshRSJob
+		}
 	else { "Run script in elevated mode to install external modules" }
 }
 
@@ -820,10 +1041,11 @@ function Install-Tools {
 		if ($key -eq 'Y') {
 			if ($IsAdmin) {	Create-Certificate >$null }
 			Copy-Modules
-			# Install-ExternalModules
+			Install-Other
 			$script = 
 				"`$root = ""$defaultRoot""`n$((Get-Item $PSCommandPath ).Basename)\Invoke-Initialize"
 			Set-ProfileLoader $script
+			if($exit) {	exit }
 			"Reloading profile..."
 			Reload
 		}
@@ -846,20 +1068,9 @@ function Invoke-Initialize {
 	Alias
 }
 
-function Initialize
+function Is-Admin
 {
-	$script:moduleVersion = "3.0.5"
-	$script:isModule = $MyInvocation.MyCommand.Name.EndsWith('.psm1')
-	$script:CACHE_VARIABLE_NAME = "TrementaDevelopment_Cache"
-
-	if (![Environment]::Is64BitProcess) {
-		throw @"
-32-bit process detected
-Version $($moduleVersion) module will only run in a 64-bit process
-"@
-	}
-
-	$script:isadmin = if ($PSVersionTable.PSEdition -eq 'Desktop' -or $PSVersionTable.Platform -eq 'Win32NT') {
+	$isadmin = if ($PSVersionTable.PSEdition -eq 'Desktop' -or $PSVersionTable.Platform -eq 'Win32NT') {
 		$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 		$principal = New-Object Security.Principal.WindowsPrincipal $identity
 		$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -871,7 +1082,26 @@ Version $($moduleVersion) module will only run in a 64-bit process
 		Write-Error "Cannot determine user mode for platform $($PSVersionTable.Platform)"
 		$false
 	}
+	
+	return $isadmin
+}
 
+function Refresh-Env{ $env:PATH = [System.Environment]::GetEnvironmentVariable('PATH','machine') }
+
+function Initialize
+{
+	$script:moduleVersion = "3.1.1"
+	$script:isModule = $MyInvocation.MyCommand.Name.EndsWith('.psm1')
+	$script:CACHE_VARIABLE_NAME = "TrementaDevelopment_Cache"
+
+	if (![Environment]::Is64BitProcess) {
+		throw @"
+32-bit process detected
+Version $($moduleVersion) module will only run in a 64-bit process
+"@
+	}
+
+	$script:isadmin = Is-Admin
 	# Called from command-line? Then install.
 	if ($script:myinvocation.CommandOrigin -eq 0 -Or $install) {
 		Install-Tools

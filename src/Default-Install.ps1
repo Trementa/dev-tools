@@ -42,25 +42,27 @@ function Invoke-Install
 		iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 	}
 
-	foreach ($app in $appFeaturesAndScripts.features)
+	foreach ($sourceKey in $appFeaturesAndScripts.choco_sources.Keys)
 	{
-		Write-Host "Installing $app"
-		& choco install $app /y /source windowsfeatures | Write-Output
-	}
-
-	foreach ($app in $appFeaturesAndScripts.applications)
-	{
-		Write-Host "Installing $app"
-		& choco install $app /y | Write-Output
+		foreach ($app in $appFeaturesAndScripts.choco_sources[$sourceKey])
+		{
+			Write-Host "Installing $app"
+			$sourceRepo = if($sourceKey -eq "*") { "" } else { "/source $($sourceKey)" }
+			Invoke-Expression "choco install $($app) /y $($sourceRepo)" | Write-Output
+		}
 	}
 	
-	foreach ($script in $appFeaturesAndScripts.scripts)
+	foreach ($script in $appfeaturesandscripts.scripts)
 	{
-		Write-Host "Running script: $script"
-		Invoke-Expression $script
+		write-host "running script: $script"
+		invoke-expression $script
 	}	
 }
 
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
-$json = Get-Content $config | ConvertFrom-Json 
-Invoke-Install $json
+
+try
+{
+	$json = Get-Content $config | ConvertFrom-Json -AsHashtable
+	Invoke-Install $json
+} catch { return " Error: $($_)" }

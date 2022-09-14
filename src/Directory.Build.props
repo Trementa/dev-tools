@@ -1,0 +1,12 @@
+<Project>
+	<PropertyGroup>
+		<LocalNuGetPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))nuget</LocalNuGetPath>
+		<PackageOutputDir>$(LocalNuGetPath)</PackageOutputDir>
+		<BuildFolder Condition=" '$(Configuration)' == 'Debug' ">$(MSBuildProjectDirectory)\bin\debug</BuildFolder>
+		<BuildFolder Condition=" '$(Configuration)' == 'Release' ">$(MSBuildProjectDirectory)\bin\release</BuildFolder>
+	</PropertyGroup>
+	
+	<Target Name="CopyPackage" AfterTargets="Pack">
+		<Copy SourceFiles="$(BuildFolder)\$(PackageId).$(PackageVersion).nupkg" DestinationFolder="$(LocalNuGetPath)\$(PackageId).$(PackageVersion).nupkg" />
+	</Target>
+</Project>
