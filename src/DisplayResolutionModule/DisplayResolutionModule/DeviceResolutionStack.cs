@@ -1,4 +1,5 @@
 ﻿using System.Management.Automation;
+using static DisplayResolutionModule.PInvoke.User_32;
 
 namespace DisplayResolutionModule
 {

@@ -1,7 +1,7 @@
-using System.Collections.ObjectModel;
-using System.Management.Automation;
+using DisplayResolutionModuleTests.Utility;
+using FluentAssertions;
 
-namespace DisplayResolutionModule.Management.PowerShell.Tests;
+namespace DisplayResolutionModuleTests;
 
 public class InvokeGetDeviceResolutionTests
 {
@@ -24,8 +24,8 @@ public class InvokeGetDeviceResolutionTests
         powerShell.AddCommand("Get-DeviceResolution");
         powerShell.AddParameter("List");
 
-        Collection<PSObject> list = powerShell.Invoke();
-        Assert.True(list.Count > 0);
+        var list = powerShell.Invoke();
+        list.Should().HaveCountGreaterThan(0);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class InvokeGetDeviceResolutionTests
         powerShell.AddCommand("Get-DeviceResolution");
         powerShell.AddParameter("History");
 
-        Collection<PSObject> history = powerShell.Invoke();
-        Assert.True(history.Count == 0);
+        var history = powerShell.Invoke();
+        history.Should().HaveCount(0);
     }
 }

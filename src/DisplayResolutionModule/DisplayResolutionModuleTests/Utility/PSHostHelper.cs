@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Management.Automation.Runspaces;
 
-namespace DisplayResolutionModule.Management.PowerShell.Tests;
+namespace DisplayResolutionModuleTests.Utility;
 
 public static class PSHostHelper
 {
@@ -9,7 +9,7 @@ public static class PSHostHelper
     {
         var iss = InitialSessionState.CreateDefault();
         var cd = Directory.GetCurrentDirectory();
-        var path = Path.Combine(cd, $"{ nameof(DisplayResolutionModule) }.dll");
+        var path = Path.Combine(cd, $"{nameof(DisplayResolutionModule)}.dll");
         iss.ImportPSModule(new[] { path, "-Force" });
         var ps = System.Management.Automation.PowerShell.Create(iss);
         return ps;

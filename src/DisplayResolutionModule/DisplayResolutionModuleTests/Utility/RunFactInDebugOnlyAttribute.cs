@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace DisplayResolutionModule.Management.PowerShell.Tests;
+namespace DisplayResolutionModuleTests.Utility;
 
 public class RunFactInDebugOnlyAttribute : FactAttribute
 {

@@ -1,8 +1,11 @@
-﻿using System.Collections;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
-namespace DisplayResolutionModule
+namespace DisplayResolutionModule.PInvoke;
+public static partial class User_32
 {
+    [DllImport("user32.dll")]
+    internal static extern int EnumDisplaySettings(string deviceName, int modeNum, ref DeviceResolution devMode);
+
     [StructLayout(LayoutKind.Sequential)]
     public record struct DeviceResolution
     {
@@ -47,5 +50,15 @@ namespace DisplayResolutionModule
 
         public int PanningWidth;
         public int PanningHeight;
+
+        internal static DeviceResolution Create()
+        {
+            var dm = new DeviceResolution {
+                DeviceName = new string(new char[32]),
+                FormName = new string(new char[32])
+            };
+            dm.Size = (short)Marshal.SizeOf(dm);
+            return dm;
+        }
     };
 }

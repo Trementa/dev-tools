@@ -1,4 +1,5 @@
 ﻿using System.Management.Automation;
+using static DisplayResolutionModule.PInvoke.User_32;
 
 namespace DisplayResolutionModule
 {
@@ -16,14 +17,14 @@ namespace DisplayResolutionModule
             ScreenResolutionManager = new ScreenResolutionManager(this);
         }
 
-        [Parameter(Mandatory = true, ParameterSetName = nameof(Push))]
+        [Parameter(Mandatory = true, Position = 0, ParameterSetName = nameof(Push))]
         public int Width { get; set; }
-        [Parameter(Mandatory = true, ParameterSetName = nameof(Push))]
+        [Parameter(Mandatory = true, Position = 1, ParameterSetName = nameof(Push))]
         public int Height { get; set; }
-        [Parameter(Mandatory = true, ParameterSetName = nameof(Push))]
+        [Parameter(Mandatory = true, Position = 2, ParameterSetName = nameof(Push))]
         public int Frequency { get; set; }
 
-        [Parameter(Mandatory = true, ParameterSetName = nameof(Pop))]
+        [Parameter(Mandatory = true, Position = 3, ParameterSetName = nameof(Pop))]
         public SwitchParameter Pop { get; set; }
 
         protected override void ProcessRecord()
@@ -31,10 +32,7 @@ namespace DisplayResolutionModule
             if (Pop)
             {
                 if (Stack.TryProp(out DeviceResolution deviceResolution))
-                {
-                    //System.Diagnostics.Debug.Assert(deviceResolution.PelsWidth == 3160);
                     ScreenResolutionManager.SetResolution(deviceResolution);
-                }
             }
             else
             {

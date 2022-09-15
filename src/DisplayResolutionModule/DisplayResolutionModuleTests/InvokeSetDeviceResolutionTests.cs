@@ -1,4 +1,6 @@
-﻿namespace DisplayResolutionModule.Management.PowerShell.Tests;
+﻿using DisplayResolutionModuleTests.Utility;
+
+namespace DisplayResolutionModuleTests;
 
 public class InvokeSetDeviceResolutionTests
 {
