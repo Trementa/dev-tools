@@ -16,7 +16,14 @@ namespace DisplayResolutionModule
             var stack = GetStack();
             try
             {
-                return stack.TryPop(out deviceResolution);
+                if (stack.Count == 0)
+                {
+                    deviceResolution = default;
+                    return false;
+                }
+
+                deviceResolution = stack.Pop();
+                return true;
             }
             finally
             {

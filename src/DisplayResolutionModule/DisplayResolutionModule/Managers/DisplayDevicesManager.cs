@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.Management.Automation;
-using System.Runtime.InteropServices;
 using DisplayResolutionModule.PInvoke;
 
 internal class DisplayDevicesManager : PSCmdletManagerBase
@@ -22,7 +21,6 @@ internal class DisplayDevicesManager : PSCmdletManagerBase
             delegate (IntPtr hMonitor, IntPtr hdcMonitor, ref User_32.Rect lprcMonitor, IntPtr dwData)
             {
                 var mi = User_32.MonitorInfoEx.Create();
-                mi.Size = Marshal.SizeOf(mi);
                 if (User_32.GetMonitorInfo(hMonitor, ref mi))
                 {
                     User_32.DisplayInfo di = new User_32.DisplayInfo {
@@ -35,8 +33,6 @@ internal class DisplayDevicesManager : PSCmdletManagerBase
                     col.Add(di);
                 }
                 return true;
-
-
             }, IntPtr.Zero);
 
         return col;
