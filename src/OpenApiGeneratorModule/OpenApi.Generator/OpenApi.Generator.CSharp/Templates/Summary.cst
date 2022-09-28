@@ -1,0 +1,16 @@
+﻿@using OpenApi.Generator
+@inherits CodeTemplate<(string Tag, string Summary)>
+@{
+    DisableEncoding = true;
+
+    if (!string.IsNullOrWhiteSpace(Model.Summary))
+    {
+        var allLines = Model.Summary.Split(Environment.NewLine);
+        @:/// <@(Model.Tag)>
+        foreach (var line in allLines)
+        {
+        @:/// @line
+        }
+        @:/// </@(Model.Tag)>
+    }
+}

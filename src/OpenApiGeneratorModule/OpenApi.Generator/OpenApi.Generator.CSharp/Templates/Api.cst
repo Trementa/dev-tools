@@ -1,0 +1,79 @@
+﻿@using Microsoft.OpenApi.Models
+@using OpenApi.Generator
+@inherits CodeTemplate<(string ClassName, IEnumerable<(string, OpenApiPathItem)> Operations)>
+@{
+    DisableEncoding = true;
+}
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
+using System.Runtime.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
+
+#nullable enable
+namespace @GetNamespace("Api", Model.ClassName)
+{
+    using Model;
+@GetUsings("    ", "Api", "Client.Request", "Types")
+
+    public partial class @GetClassName(Model)Api : @GetBaseClass(Model)
+    {
+        public @GetClassName(Model)Api(HttpRequestFunc httpRequestFunc) : base(httpRequestFunc)
+        {}
+
+   @foreach (var pathInstance in GetPathes(Model))
+   {
+    @foreach (var operation in GetOperations(pathInstance))
+    {
+            var returnType = GetReturnType(operation);
+            var arguments = GetFunctionArguments(operation);
+            var operationName = GetOperationName(operation, GetPathAsSubPaths(pathInstance)[^1]);
+            var operationType = GetOperationType(operation);
+            var path = GetOperationPath(pathInstance);
+@:@(GetOperationSummary(operation, "        ", operationName))
+        @:public virtual async Task<@(returnType)> @(operationName)(@(FormatArguments(arguments)))
+        @:    => await Execute<@returnType>(HttpMethod.@(operationType), "@(path)",
+        @:        async rb => await rb
+                foreach (var parameter in GetParameters(operation))
+                {
+                    var parameterType = parameter.In switch
+                    {
+                        ParameterLocation.Query => "Query",
+                        ParameterLocation.Header => "Header",
+                        ParameterLocation.Path => "Path",
+                        ParameterLocation.Cookie => "Cookie",
+                        var param => param.ToString()
+                    };
+                
+        @:        .Add@(parameterType)Parameter(nameof(@(parameter.Name)), @(parameter.Name))
+                }
+
+                var requestParameters = GetRequestBodyParameters(operation);
+                if(requestParameters.Count() > 1)
+                {
+        @:        .SetRequestBodyMediaType("@(GetRequestBodyMediaType(operation))")
+                }
+                foreach (var requestParameter in requestParameters)
+                {
+        @:        .AddRequestBody(nameof(@(requestParameter.Name)), @(requestParameter.Name), "@(requestParameter.MediaType)")
+                }
+                foreach(var response in GetResponseTypes(operation))
+                {
+                    if(string.IsNullOrWhiteSpace(response.MediaType))
+                    {
+        @:        .AddResponseMap<@response.Type>("@response.StatusCode")
+                    }
+                    else
+                    {
+        @:        .AddResponseMap<@response.Type>("@response.StatusCode", "@response.MediaType")
+                    }
+                }
+        @:        .GetAwaiter()
+        @:    , cancellationToken);
+        @:
+    }
+    }
+ }
+}

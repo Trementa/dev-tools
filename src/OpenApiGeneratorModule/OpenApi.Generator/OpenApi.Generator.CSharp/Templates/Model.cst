@@ -1,0 +1,17 @@
+﻿@using Microsoft.OpenApi.Models
+@using OpenApi.Generator
+@inherits CodeTemplate<(string Name, OpenApiSchema Type)>
+@{
+    DisableEncoding = true;
+}
+using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
+@GetUsings("", "Client", "Types")
+
+#nullable enable
+namespace @(GetNamespace("Model"))
+{
+    @{ await IncludeAsync("ModelClass", Model); }
+}
