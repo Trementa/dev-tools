@@ -12,9 +12,9 @@ namespace OpenApi.Generator
     public class CSharpCodeGenerator
     {
         protected readonly RazorCodeGenerator RazorCodeGenerator;
-        protected readonly ILogger Logger;
+        protected readonly Logger Logger;
 
-        public CSharpCodeGenerator(RazorCodeGenerator razorViewToStringRenderer, ILogger<CSharpCodeGenerator> logger)
+        public CSharpCodeGenerator(RazorCodeGenerator razorViewToStringRenderer, Logger<CSharpCodeGenerator> logger)
         {
             RazorCodeGenerator = razorViewToStringRenderer;
             Logger = logger;

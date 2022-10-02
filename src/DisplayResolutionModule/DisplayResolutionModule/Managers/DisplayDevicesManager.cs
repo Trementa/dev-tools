@@ -1,7 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Management.Automation;
-using DisplayResolutionModule.PInvoke;
+using DisplayResolutionModule.Managers.PInvoke;
 
+namespace DisplayResolutionModule.Managers;
 internal class DisplayDevicesManager : PSCmdletManagerBase
 {
     public DisplayDevicesManager(PSCmdlet @base) : base(@base)

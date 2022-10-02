@@ -1,5 +1,6 @@
 ﻿using System.Management.Automation;
 
+namespace DisplayResolutionModule.Managers;
 public abstract class PSCmdletManagerBase
 {
     readonly PSCmdlet @base;

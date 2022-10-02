@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using RazorLight;
 
 namespace OpenApi.Generator
@@ -10,11 +9,11 @@ namespace OpenApi.Generator
     {
         protected readonly IRazorLightEngine RazorLightEngine;
         protected readonly Options Options;
-        protected readonly ILogger Logger;
+        protected readonly Logger Logger;
         protected readonly FileArtifactTracker FileArtifactTracker;
         protected readonly ErrorTracker ErrorTracker;
 
-        public RazorCodeGenerator(IRazorLightEngine razorLightEngine, Options options, ILogger<RazorCodeGenerator> logger, FileArtifactTracker fileArtifactTracker, ErrorTracker errorTracker) =>
+        public RazorCodeGenerator(IRazorLightEngine razorLightEngine, Options options, Logger<RazorCodeGenerator> logger, FileArtifactTracker fileArtifactTracker, ErrorTracker errorTracker) =>
             (RazorLightEngine, Options, Logger, FileArtifactTracker, ErrorTracker)
             = (razorLightEngine, options, logger, fileArtifactTracker, errorTracker);
 
@@ -36,8 +35,7 @@ namespace OpenApi.Generator
                 var content = await RazorLightEngine.CompileRenderAsync(templateName, model);
                 Save(destinationFileInfo, content);
                 FileArtifactTracker.TrackFile(destinationFileInfo);
-                if(!Options.Quiet)
-                    Logger.LogInformation("Generated C# file: {generatedFile}\n\tUsing template: {template}", destinationFileInfo.Name, templateName);
+                Logger.LogInformation("Generated C# file: {generatedFile}\n\tUsing template: {template}", destinationFileInfo.Name, templateName);
             }
             catch(Exception ex)
             {

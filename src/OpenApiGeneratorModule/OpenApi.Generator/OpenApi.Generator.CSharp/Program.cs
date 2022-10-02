@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -20,8 +21,12 @@ namespace OpenApi.Generator
         static void ShowHelp() =>
             Console.Write(Options.Help);
 
-        static void Start(string[] args) =>
-            CreateHostBuilder(args).RunConsoleAsync().Wait();
+        static async void Start(string[] args)
+        {
+            await CreateHostBuilder(args).RunConsoleAsync().WaitAsync(CancellationToken.None);
+            //Console.WriteLine("Press any key");
+            //Console.ReadKey();
+        }
 
         static IHostBuilder CreateHostBuilder(string[] args) =>
                 Host.CreateDefaultBuilder(args)
@@ -41,7 +46,9 @@ namespace OpenApi.Generator
                     .UseMemoryCachingProvider()
                     .DisableEncoding()
                     .Build());
-            services.AddSingleton<RazorCodeGenerator>()
+            services
+                .AddTransient(typeof(Logger<>))
+                .AddSingleton<RazorCodeGenerator>()
                 .AddTransient<Compiler>()
                 .AddTransient<CSharpCodeGenerator>()
                 .AddTransient<CodeGenAdditional>()

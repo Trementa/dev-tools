@@ -1,13 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
-using RazorLight;
-using RazorLight.Internal;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.OpenApi.Models;
+using RazorLight;
+using RazorLight.Internal;
 
 namespace OpenApi.Generator
 {
@@ -28,7 +27,7 @@ namespace OpenApi.Generator
         protected RazorCodeGenerator RazorCodeGenerator { get; set; }
 
         [RazorInject]
-        protected ILogger<CodeTemplate<TModel>> Logger { get; set; }
+        protected Logger<CodeTemplate<TModel>> Logger { get; set; }
 
         [RazorInject]
         protected Options Options { get; set; }

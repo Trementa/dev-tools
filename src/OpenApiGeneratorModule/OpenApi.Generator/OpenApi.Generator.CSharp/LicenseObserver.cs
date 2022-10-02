@@ -12,10 +12,10 @@ namespace OpenApi.Generator
         readonly string[] skipLicenseWhenFileStartsWith = new[] { "/*", Environment.NewLine };
         bool StartsWithExcludingTag(string text) => Array.TrueForAll(skipLicenseWhenFileStartsWith, value => text.StartsWith(value));
 
-        protected readonly ILogger Logger;
+        protected readonly Logger Logger;
         protected readonly Options Options;
 
-        public LicenseObserver(Options options, ILogger logger) =>
+        public LicenseObserver(Options options, Logger logger) =>
             (Options, Logger) =
             (options, logger);
 

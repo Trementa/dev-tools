@@ -1,61 +1,60 @@
 ﻿using System.Management.Automation;
-using static DisplayResolutionModule.PInvoke.User_32;
 
-namespace DisplayResolutionModule
+namespace DisplayResolutionModule;
+using static Managers.PInvoke.User_32;
+
+public class DeviceResolutionStack
 {
-    class DeviceResolutionStack
+    const string DeviceResolutionStackName = nameof(DeviceResolutionStack);
+    readonly PSCmdlet @base;
+
+    public DeviceResolutionStack(PSCmdlet @base)
+        => this.@base = @base;
+
+    internal bool TryProp(out DisplayDeviceResolution deviceResolution)
     {
-        const string DeviceResolutionStackName = nameof(DeviceResolutionStack);
-        readonly PSCmdlet @base;
-
-        public DeviceResolutionStack(PSCmdlet @base)
-            => this.@base = @base;
-
-        internal bool TryProp(out DeviceResolution deviceResolution)
+        var stack = GetStack();
+        try
         {
-            var stack = GetStack();
-            try
+            if (stack.Count == 0)
             {
-                if (stack.Count == 0)
-                {
-                    deviceResolution = default;
-                    return false;
-                }
+                deviceResolution = default;
+                return false;
+            }
 
-                deviceResolution = stack.Pop();
-                return true;
-            }
-            finally
-            {
-                SetStack(stack);
-            }
+            deviceResolution = stack.Pop();
+            return true;
         }
-
-        internal void Push(DeviceResolution deviceResolution)
+        finally
         {
-            var stack = GetStack();
-            try
-            {
-                stack.Push(deviceResolution);
-            }
-            finally
-            {
-                SetStack(stack);
-            }
+            SetStack(stack);
         }
+    }
 
-        internal IEnumerable<DeviceResolution> AsEnumerable()
-            => GetStack().AsEnumerable();
-
-        void SetStack(Stack<DeviceResolution> stack)
-            => @base.SessionState.PSVariable.Set(DeviceResolutionStackName, stack);
-
-        Stack<DeviceResolution> GetStack()
+    internal void Push(DisplayDeviceResolution deviceResolution)
+    {
+        var stack = GetStack();
+        try
         {
-            if (@base.SessionState.PSVariable.GetValue(DeviceResolutionStackName) is Stack<DeviceResolution> deviceResolutionStack)
-                return deviceResolutionStack;
-            else
-                return new Stack<DeviceResolution>();
+            stack.Push(deviceResolution);
         }
+        finally
+        {
+            SetStack(stack);
+        }
+    }
+
+    internal IEnumerable<DisplayDeviceResolution> AsEnumerable()
+        => GetStack().AsEnumerable();
+
+    void SetStack(Stack<DisplayDeviceResolution> stack)
+        => @base.SessionState.PSVariable.Set(DeviceResolutionStackName, stack);
+
+    Stack<DisplayDeviceResolution> GetStack()
+    {
+        if (@base.SessionState.PSVariable.GetValue(DeviceResolutionStackName) is Stack<DisplayDeviceResolution> deviceResolutionStack)
+            return deviceResolutionStack;
+        else
+            return new Stack<DisplayDeviceResolution>();
     }
 }

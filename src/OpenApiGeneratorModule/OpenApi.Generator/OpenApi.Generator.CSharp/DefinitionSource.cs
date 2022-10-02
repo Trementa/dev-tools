@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 
 namespace OpenApi.Generator
 {
@@ -19,20 +16,16 @@ namespace OpenApi.Generator
         public virtual async Task<Stream> Read(CancellationToken cancellationToken = default)
         {
             if (Uri.IsFile)
-            {
-                return OpenFile();
-            }
+                return await OpenFile(cancellationToken);
 
             if (Uri.IsAbsoluteUri)
-            {
                 return await OpenHttp(cancellationToken);
-            }
 
             throw new Exception($"Unknown Uri type {Uri}");
         }
 
-        protected Stream OpenFile() =>
-            new FileStream(Uri.AbsolutePath, FileMode.Open);
+        protected async Task<Stream> OpenFile(CancellationToken cancellationToken) =>
+            await Task.FromResult(new FileStream(Uri.AbsolutePath, FileMode.Open));
 
         protected async Task<Stream> OpenHttp(CancellationToken cancellationToken)
         {

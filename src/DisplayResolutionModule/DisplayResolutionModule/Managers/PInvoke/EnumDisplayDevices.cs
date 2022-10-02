@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace DisplayResolutionModule.PInvoke;
+namespace DisplayResolutionModule.Managers.PInvoke;
 public static partial class User_32
 {
     [DllImport("user32.dll")]

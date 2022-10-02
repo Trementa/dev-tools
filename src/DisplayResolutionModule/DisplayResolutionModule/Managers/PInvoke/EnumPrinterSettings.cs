@@ -1,13 +1,13 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace DisplayResolutionModule.Managers.PInvoke ;
+namespace DisplayResolutionModule.Managers.PInvoke;
 public static partial class User_32
 {
     [DllImport("user32.dll")]
-    internal static extern int EnumDisplaySettings(string deviceName, int modeNum, ref DisplayDeviceResolution devMode);
+    internal static extern int EnumPrinterSettings(string deviceName, int modeNum, ref PrinterDeviceResolution devMode);
 
     [StructLayout(LayoutKind.Sequential)]
-    public record struct DisplayDeviceResolution
+    public record struct PrinterDeviceResolution
     {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
         public string DeviceName;
@@ -17,9 +17,14 @@ public static partial class User_32
         public short DriverExtra;
         public int Fields;
 
-        public POINTL Position;
-        public int DisplayOrientation;
-        public int DisplayFixedOutput;
+        public short Orientation;
+        public short PaperSize;
+        public short PaperLength;
+        public short PaperWidth;
+        public short Scale;
+        public short Copies;
+        public short DefaultSource;
+        public short PrintQuality;
 
         public short Color;
         public short Duplex;
@@ -46,16 +51,9 @@ public static partial class User_32
         public int PanningWidth;
         public int PanningHeight;
 
-        [StructLayout(LayoutKind.Sequential)]
-        public record struct POINTL
+        internal static PrinterDeviceResolution Create()
         {
-            int X;
-            int Y;
-        }
-
-        internal static DisplayDeviceResolution Create()
-        {
-            var dm = new DisplayDeviceResolution {
+            var dm = new PrinterDeviceResolution {
                 DeviceName = new string(new char[32]),
                 FormName = new string(new char[32])
             };

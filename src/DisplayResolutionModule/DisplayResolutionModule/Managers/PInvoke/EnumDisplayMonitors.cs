@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace DisplayResolutionModule.PInvoke;
+namespace DisplayResolutionModule.Managers.PInvoke;
 public static partial class User_32
 {
     [DllImport("user32.dll")]
@@ -66,11 +66,11 @@ public static partial class User_32
         public string DeviceName;
 
         public static MonitorInfoEx Create()
-            => new MonitorInfoEx
-            {
-                Size = 40 + 2 * CCHDEVICENAME,
-                DeviceName = string.Empty
-            };
+        {
+            var miex = new MonitorInfoEx();
+            miex.Size = Marshal.SizeOf(miex);
+            return miex;
+        }
     }
 
     /// <summary>

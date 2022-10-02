@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
+﻿using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,12 +13,12 @@ namespace OpenApi.Generator
     public class CodeGenAdditional
     {
         protected readonly FileArtifactTracker FileArtifactTracker;
-        protected readonly ILogger Logger;
+        protected readonly Logger Logger;
         protected readonly Options Options;
         protected readonly RazorCodeGenerator RazorCodeGenerator;
 
         public CodeGenAdditional(FileArtifactTracker fileArtifactTracker, Options options,
-            RazorCodeGenerator razorCodeGenerator, ILogger<CodeGenAdditional> logger) =>
+            RazorCodeGenerator razorCodeGenerator, Logger<CodeGenAdditional> logger) =>
             (FileArtifactTracker, Options, RazorCodeGenerator, Logger) =
             (fileArtifactTracker, options, razorCodeGenerator, logger);
 
@@ -27,8 +26,7 @@ namespace OpenApi.Generator
         {
             foreach (var templatePath in GetAdditionalFiles())
             {
-                if (!Options.Quiet)
-                    Logger.LogInformation($"Processing template {templatePath}");
+                Logger.LogInformation($"Processing template {templatePath}");
 
                 if (templatePath.EndsWith(Options.CsTemplate))
                     await RazorCodeGenerator.GenerateAndSaveCode(templatePath, document);
@@ -98,8 +96,7 @@ namespace OpenApi.Generator
             var destinationFile = await Write(result, templatePath, sourceStream.CurrentEncoding, cancellationToken);
             FileArtifactTracker.TrackFile(destinationFile);
 
-            if (!Options.Quiet)
-                Logger.LogInformation($"Processed C# file: \"{ templatePath }\"");
+            Logger.LogInformation($"Processed C# file: \"{ templatePath }\"");
         }
 
         protected async Task CopyFileAsync(string templatePath, string destinationDirectory, CancellationToken cancellationToken = default)
@@ -120,8 +117,7 @@ namespace OpenApi.Generator
             await sourceStream.CopyToAsync(destinationStream, cancellationToken);
             FileArtifactTracker.TrackFile(destinationPath);
 
-            if (!Options.Quiet)
-                Logger.LogInformation($"Copied file verbatim: \"{ templatePath }\"");
+            Logger.LogInformation($"Copied file verbatim: \"{ templatePath }\"");
         }
 
         protected async Task<string> Write(string result, string templatePath, Encoding currentEncoding, CancellationToken cancellationToken)

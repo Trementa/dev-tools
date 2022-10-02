@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileLockProcessModule", "FileLockProcessModule\FileLockProcessModule.csproj", "{EB34BECB-4079-4CD9-8ABE-ECA927D92EE7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileLockProcessModuleTests", "FileLockProcessModuleTests\FileLockProcessModuleTests.csproj", "{32C0DF5C-0125-4C1C-86E4-2FEA615D5310}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EB34BECB-4079-4CD9-8ABE-ECA927D92EE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB34BECB-4079-4CD9-8ABE-ECA927D92EE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB34BECB-4079-4CD9-8ABE-ECA927D92EE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB34BECB-4079-4CD9-8ABE-ECA927D92EE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32C0DF5C-0125-4C1C-86E4-2FEA615D5310}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32C0DF5C-0125-4C1C-86E4-2FEA615D5310}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32C0DF5C-0125-4C1C-86E4-2FEA615D5310}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32C0DF5C-0125-4C1C-86E4-2FEA615D5310}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B6E2FDEA-5667-46FC-ADCF-BBE5D7329F52}
+	EndGlobalSection
+EndGlobal

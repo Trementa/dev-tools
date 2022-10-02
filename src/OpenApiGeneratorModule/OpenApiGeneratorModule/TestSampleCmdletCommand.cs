@@ -4,9 +4,9 @@ using System.Management.Automation.Runspaces;
 
 namespace OpenApiGeneratorModule
 {
-    [Cmdlet(VerbsDiagnostic.Test,"SampleCmdlet")]
+    [Cmdlet(VerbsData.Export, "Code")]
     [OutputType(typeof(FavoriteStuff))]
-    public class TestSampleCmdletCommand : PSCmdlet
+    public class ExportCodeFromOpenApiDefinitionCmdletCommand : PSCmdlet
     {
         [Parameter(
             Mandatory = true,
