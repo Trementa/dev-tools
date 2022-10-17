@@ -1,8 +1,9 @@
 ﻿@using Microsoft.OpenApi.Models
-@using OpenApi.Generator
+@using OpenApi.Generator.CSharp
 @inherits CodeTemplate<(string ClassName, IEnumerable<(string, OpenApiPathItem)> Operations)>
 @{
     DisableEncoding = true;
+    var apiName = GetClassName(Model, "Api");
 }
 using System;
 using System.Collections.Generic;
@@ -11,32 +12,33 @@ using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 #nullable enable
+
 namespace @GetNamespace("Api", Model.ClassName)
 {
-    using Model;
-@GetUsings("    ", "Api", "Client.Request", "Types")
+@GetUsings("    ", "Api", "Configuration", "Client.Request", "Model", "Types")
 
-    public partial class @GetClassName(Model)Api : @GetBaseClass(Model)
+    public partial class @(apiName) : BaseApi<@(apiName)>
     {
-        public @GetClassName(Model)Api(HttpRequestFunc httpRequestFunc) : base(httpRequestFunc)
+        public @(apiName)(IConnection connection, ILogger<@(apiName)> logger) : base(connection, logger)
         {}
 
    @foreach (var pathInstance in GetPathes(Model))
    {
-    @foreach (var operation in GetOperations(pathInstance))
+    @foreach (var operation in pathInstance.GetOperations())
     {
-            var returnType = GetReturnType(operation);
-            var arguments = GetFunctionArguments(operation);
-            var operationName = GetOperationName(operation, GetPathAsSubPaths(pathInstance)[^1]);
-            var operationType = GetOperationType(operation);
-            var path = GetOperationPath(pathInstance);
-@:@(GetOperationSummary(operation, "        ", operationName))
+            var returnType = operation.GetReturnType();
+            var arguments = operation.GetFunctionArguments();
+            var operationName = operation.GetOperationName(pathInstance.GetPathAsSubPaths()[^1]);
+            var operationType = operation.GetOperationType();
+            var path = pathInstance.GetOperationPath();
+@:@(operation.GetOperationSummary("        ", operationName))
         @:public virtual async Task<@(returnType)> @(operationName)(@(FormatArguments(arguments)))
         @:    => await Execute<@returnType>(HttpMethod.@(operationType), "@(path)",
         @:        async rb => await rb
-                foreach (var parameter in GetParameters(operation))
+                foreach (var parameter in operation.GetParameters())
                 {
                     var parameterType = parameter.In switch
                     {
@@ -46,20 +48,20 @@ namespace @GetNamespace("Api", Model.ClassName)
                         ParameterLocation.Cookie => "Cookie",
                         var param => param.ToString()
                     };
-                
-        @:        .Add@(parameterType)Parameter(nameof(@(parameter.Name)), @(parameter.Name))
+
+        @:        .Add@(parameterType)Parameter("(@(parameter.OriginalName))", @(parameter.Name))
                 }
 
-                var requestParameters = GetRequestBodyParameters(operation);
+                var requestParameters = operation.GetRequestBodyParameters();
                 if(requestParameters.Count() > 1)
                 {
-        @:        .SetRequestBodyMediaType("@(GetRequestBodyMediaType(operation))")
+        @:        .SetRequestBodyMediaType("@(operation.GetRequestBodyMediaType())")
                 }
                 foreach (var requestParameter in requestParameters)
                 {
         @:        .AddRequestBody(nameof(@(requestParameter.Name)), @(requestParameter.Name), "@(requestParameter.MediaType)")
                 }
-                foreach(var response in GetResponseTypes(operation))
+                foreach(var response in operation.GetResponseTypes())
                 {
                     if(string.IsNullOrWhiteSpace(response.MediaType))
                     {

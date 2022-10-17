@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,11 +50,15 @@ namespace OpenApi.Generator
                 if (grouping.Any())
                 {
                     var className = Normalize(tag);
-                    await RazorCodeGenerator.GenerateAndSaveCode("Api", $"Api\\{ className }Api.cs",
+                    var fileName = CreateFileName("Api", className, "Api.cs");
+                    await RazorCodeGenerator.GenerateAndSaveCode("Api", fileName,
                         (className, grouping.Select(g => (g.Key, g.Value))));
                 }
             }
         }
+
+        string CreateFileName(string folder, string typeName, string prefix) =>
+            Path.Combine(folder, string.Concat(typeName, prefix));
 
         protected async Task GenerateModels(OpenApiComponents components, CancellationToken cancellationToken)
         {
@@ -61,7 +66,8 @@ namespace OpenApi.Generator
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var modelName = model.Key.ToPascalCase();
-                await RazorCodeGenerator.GenerateAndSaveCode("Model", $"Model\\{modelName}.cs",
+                var fileName = CreateFileName("Model", modelName, ".cs");
+                await RazorCodeGenerator.GenerateAndSaveCode("Model", fileName,
                     (modelName, model.Value));
             }
         }

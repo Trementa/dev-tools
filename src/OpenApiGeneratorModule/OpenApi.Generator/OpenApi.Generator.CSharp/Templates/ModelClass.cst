@@ -1,6 +1,6 @@
 ﻿@using Microsoft.OpenApi.Any
 @using Microsoft.OpenApi.Models
-@using OpenApi.Generator
+@using OpenApi.Generator.CSharp
 @inherits CodeTemplate<(string Name, OpenApiSchema Type)>
 @{
     DisableEncoding = true;

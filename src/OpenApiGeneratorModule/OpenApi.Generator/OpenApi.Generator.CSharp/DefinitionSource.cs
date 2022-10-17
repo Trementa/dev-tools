@@ -16,7 +16,7 @@ namespace OpenApi.Generator
         public virtual async Task<Stream> Read(CancellationToken cancellationToken = default)
         {
             if (Uri.IsFile)
-                return await OpenFile(cancellationToken);
+                return OpenFile(cancellationToken);
 
             if (Uri.IsAbsoluteUri)
                 return await OpenHttp(cancellationToken);
@@ -24,8 +24,8 @@ namespace OpenApi.Generator
             throw new Exception($"Unknown Uri type {Uri}");
         }
 
-        protected async Task<Stream> OpenFile(CancellationToken cancellationToken) =>
-            await Task.FromResult(new FileStream(Uri.AbsolutePath, FileMode.Open));
+        protected Stream OpenFile(CancellationToken cancellationToken) =>
+            new FileStream(Uri.AbsolutePath, FileMode.Open);
 
         protected async Task<Stream> OpenHttp(CancellationToken cancellationToken)
         {
