@@ -5,19 +5,18 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenApi.Generator", "OpenApi.Generator", "{49FDAAB6-FBF6-419D-86A0-5869A14B5FA8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenApi.Generator.CSharp", "OpenApi.Generator\OpenApi.Generator.CSharp\OpenApi.Generator.CSharp.csproj", "{E6252ECB-3230-4E02-AEE3-84F1B4B0C5A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenApi.Generator.CSharp", "OpenApi.Generator\OpenApi.Generator.CSharp\OpenApi.Generator.CSharp.csproj", "{E6252ECB-3230-4E02-AEE3-84F1B4B0C5A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenApi.Generator.Test", "OpenApi.Generator\OpenApi.Generator.Test\OpenApi.Generator.Test.csproj", "{902D6288-4FC4-4D8E-A9AC-52C7B1FB95AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenApi.Generator.Test", "OpenApi.Generator\OpenApi.Generator.Test\OpenApi.Generator.Test.csproj", "{902D6288-4FC4-4D8E-A9AC-52C7B1FB95AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenApiGeneratorModule", "OpenApiGeneratorModule\OpenApiGeneratorModule.csproj", "{7FD7564D-88A2-4C93-85F2-2B8AC8679283}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenApiGeneratorModule", "OpenApiGeneratorModule\OpenApiGeneratorModule.csproj", "{7FD7564D-88A2-4C93-85F2-2B8AC8679283}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Drofus.Api.Proxy", "OpenApi.Generator\OpenApi.Generator.Test\bin\Debug\net6.0\temp\Drofus\Drofus.Api.Proxy.csproj", "{AC7050A3-2113-424B-8E1D-855235E9094F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{E6252ECB-3230-4E02-AEE3-84F1B4B0C5A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -32,9 +31,19 @@ Global
 		{7FD7564D-88A2-4C93-85F2-2B8AC8679283}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FD7564D-88A2-4C93-85F2-2B8AC8679283}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7FD7564D-88A2-4C93-85F2-2B8AC8679283}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC7050A3-2113-424B-8E1D-855235E9094F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC7050A3-2113-424B-8E1D-855235E9094F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC7050A3-2113-424B-8E1D-855235E9094F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC7050A3-2113-424B-8E1D-855235E9094F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{E6252ECB-3230-4E02-AEE3-84F1B4B0C5A8} = {49FDAAB6-FBF6-419D-86A0-5869A14B5FA8}
 		{902D6288-4FC4-4D8E-A9AC-52C7B1FB95AB} = {49FDAAB6-FBF6-419D-86A0-5869A14B5FA8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {948B3AF0-DA06-400B-A5C2-905C0BE780D3}
 	EndGlobalSection
 EndGlobal

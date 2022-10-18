@@ -1,7 +1,5 @@
 ﻿namespace OpenApi.Generator.CSharp.SyntaxProviders;
 
-public enum FunctionArgumentEnum { Query, Header, Path, Cookie, Request, Unknown };
-
 public struct FunctionArgument
 {
     public string Type { get; set; }
@@ -11,7 +9,9 @@ public struct FunctionArgument
     public bool IsRequired { get; set; }
     public string Description { get; set; }
 
-    public FunctionArgumentEnum FunctionArgumentEnum { get; set; }
+    public enum ArgumentLocation { Query, Header, Path, Cookie, Request, Unknown };
+
+    public ArgumentLocation In { get; set; }
 
     public override string ToString()
     {

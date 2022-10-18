@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.OpenApi.Models;
 using OpenApi.Generator.CSharp.Utility;
+
 #nullable enable
 
 namespace OpenApi.Generator.CSharp.SyntaxProviders;
 
 public static partial class Extensions
 {
-    public static string FormatArguments(this IEnumerable<FunctionArgument> arguments)
+    public static string Format(this IEnumerable<FunctionArgument> arguments)
         => string.Join(", ", ArgumentsToString(arguments));
 
     static IEnumerable<string> ArgumentsToString(IEnumerable<FunctionArgument> arguments)
@@ -17,6 +18,9 @@ public static partial class Extensions
         foreach (var argument in arguments)
             yield return argument.ToString();
     }
+
+    public static (string OriginalName, string ScrubbedName) GetValidVariableName(this string originalName, char defaultReplacementCharacter = '_', params (char Match, string Replacement)[] matchAndReplaceMap)
+        => (originalName, CSharpIdentifiers.CreateValidIdentifier(originalName, defaultReplacementCharacter, matchAndReplaceMap));
 }
 
 public record Operation(OperationType OperationType, OpenApiOperation ApiOperation)
@@ -49,69 +53,51 @@ public record Operation(OperationType OperationType, OpenApiOperation ApiOperati
         return GetFunctionArguments()
             .SelectMany(e => e)
             .Append(new FunctionArgument { Type = "CancellationToken", Name = "cancellationToken", IsNullable = false, IsRequired = false })
-            .OrderBy(e => e.IsRequired);
+            .OrderByDescending(e => e.IsRequired);
 
         IEnumerable<IEnumerable<FunctionArgument>> GetFunctionArguments()
         {
             yield return GetParameters();
-            yield return GetRequestBodyParameters();
+            yield return GetRequestBodyArguments();
         }
 
-        (string OriginalName, string ScrubbedName) GetValidVariableName(string originalName)
-        {
-            if (CSharpIdentifiers.TryParseRawIdentifier(originalName, out var scrubbedFunctionParameterName))
-            {
-                return (originalName, scrubbedFunctionParameterName);
-            }
-            else
-            {
-                // Not a valid C# variable name, randomize valid
-                scrubbedFunctionParameterName = "ABC";
-                return (originalName, scrubbedFunctionParameterName);
-            }
-        }
-
-        IEnumerable<FunctionArgument> GetParameters()
-        {
-            foreach (var parameter in ApiOperation.Parameters)
-            {
-                var validVariableName = GetValidVariableName(parameter.Name);
-                yield return new FunctionArgument
-                {
-                    Type = TypeResolver.GetCompileTimeType((parameter.Name, parameter.Schema)).Type,
-                    OriginalName = validVariableName.OriginalName,
-                    Name = validVariableName.ScrubbedName,
-                    IsNullable = parameter.Schema.Nullable,
-                    IsRequired = parameter.Required,
-                    Description = parameter.Description,
-                    FunctionArgumentEnum = parameter.In switch
-                    {
-                        ParameterLocation.Cookie => FunctionArgumentEnum.Cookie,
-                        ParameterLocation.Header => FunctionArgumentEnum.Header,
-                        ParameterLocation.Path => FunctionArgumentEnum.Path,
-                        ParameterLocation.Query => FunctionArgumentEnum.Query,
-                        _ => FunctionArgumentEnum.Unknown
-                    }
-                };
-            }
-        }
-
-
-        IEnumerable<FunctionArgument> GetRequestBodyParameters()
+        IEnumerable<FunctionArgument> GetRequestBodyArguments()
         {
             foreach (var requestParam in GetRequestBodyParameters())
             {
-                var validVariableName = GetValidVariableName(requestParam.Name);
-                yield return new FunctionArgument
-                {
+                var validVariableName = requestParam.Name.GetValidVariableName();
+                yield return new FunctionArgument {
                     Type = requestParam.Type,
                     OriginalName = validVariableName.OriginalName,
                     Name = validVariableName.ScrubbedName,
                     IsNullable = true, //requestParam.IsNullable,
                     IsRequired = false,
-                    FunctionArgumentEnum = FunctionArgumentEnum.Request
+                    In = FunctionArgument.ArgumentLocation.Request
                 };
             }
+        }
+    }
+
+    public IEnumerable<FunctionArgument> GetParameters()
+    {
+        foreach (var parameter in ApiOperation.Parameters)
+        {
+            var validVariableName = parameter.Name.GetValidVariableName();
+            yield return new FunctionArgument {
+                Type = TypeResolver.GetCompileTimeType((parameter.Name, parameter.Schema)).Type,
+                OriginalName = validVariableName.OriginalName,
+                Name = validVariableName.ScrubbedName,
+                IsNullable = parameter.Schema.Nullable,
+                IsRequired = parameter.Required,
+                Description = parameter.Description,
+                In = parameter.In switch {
+                    ParameterLocation.Cookie => FunctionArgument.ArgumentLocation.Cookie,
+                    ParameterLocation.Header => FunctionArgument.ArgumentLocation.Header,
+                    ParameterLocation.Path => FunctionArgument.ArgumentLocation.Path,
+                    ParameterLocation.Query => FunctionArgument.ArgumentLocation.Query,
+                    _ => FunctionArgument.ArgumentLocation.Unknown
+                }
+            };
         }
     }
 
@@ -145,9 +131,9 @@ public record Operation(OperationType OperationType, OpenApiOperation ApiOperati
 
     public OperationType GetOperationType() => OperationType;
 
-    public IEnumerable<ResponseParameter> GetResponseTypes((OperationType, OpenApiOperation) model)
+    public IEnumerable<ResponseParameter> GetResponseTypes()
     {
-        foreach (var response in model.Item2.Responses)
+        foreach (var response in ApiOperation.Responses)
         {
             var value = response.Value.Content?.FirstOrDefault().Value;
             if (value != null)
@@ -280,55 +266,4 @@ public record Operation(OperationType OperationType, OpenApiOperation ApiOperati
                 MediaType = mediaType
             };
     }
-
-
-    /*
-                var path = GetOperationPath(pathInstance);
-    @:@(GetOperationSummary(operation, "        ", operationName))
-            @:public virtual async Task<@(returnType)> @(operationName)(@(FormatArguments(arguments)))
-            @:    => await Execute<@returnType>(HttpMethod.@(operationType), "@(path)",
-            @:        async rb => await rb
-                    foreach (var parameter in GetParameters(operation))
-                    {
-                        var parameterType = parameter.In switch
-                        {
-                            ParameterLocation.Query => "Query",
-                            ParameterLocation.Header => "Header",
-                            ParameterLocation.Path => "Path",
-                            ParameterLocation.Cookie => "Cookie",
-                            var param => param.ToString()
-                        };
-
-            @:        .Add@(parameterType)Parameter("(@(parameter.OriginalName))", @(parameter.Name))
-                    }
-
-                    var requestParameters = GetRequestBodyParameters(operation);
-                    if(requestParameters.Count() > 1)
-                    {
-            @:        .SetRequestBodyMediaType("@(GetRequestBodyMediaType(operation))")
-                    }
-                    foreach (var requestParameter in requestParameters)
-                    {
-            @:        .AddRequestBody(nameof(@(requestParameter.Name)), @(requestParameter.Name), "@(requestParameter.MediaType)")
-                    }
-                    foreach(var response in GetResponseTypes(operation))
-                    {
-                        if(string.IsNullOrWhiteSpace(response.MediaType))
-                        {
-            @:        .AddResponseMap<@response.Type>("@response.StatusCode")
-                        }
-                        else
-                        {
-            @:        .AddResponseMap<@response.Type>("@response.StatusCode", "@response.MediaType")
-                        }
-                    }
-
-
-        */
-
-
-
-
-
 }
-

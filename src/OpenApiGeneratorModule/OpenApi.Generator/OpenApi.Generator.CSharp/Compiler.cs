@@ -81,30 +81,14 @@ namespace OpenApi.Generator
                 RuleSet = ValidationRuleSet.GetDefaultRuleSet()
             }).Read(source, out var result);
 
-            //var (document, result) = await Task.Run(() =>
-            //{
-            //    var source = definitionSource.Read();
-            //    var doc = new OpenApiStreamReader(new OpenApiReaderSettings
-            //    {
-            //        ReferenceResolution = ReferenceResolutionSetting.ResolveLocalReferences,
-            //        RuleSet = ValidationRuleSet.GetDefaultRuleSet()
-            //    }).Read(source, out var context);
-            //    return (doc, context);
-            //}, cancellationToken);
-
             Logger.LogError(result.Errors);
 
             if (result.SpecificationVersion != Microsoft.OpenApi.OpenApiSpecVersion.OpenApi3_0)
-                //string.Compare(document?.Info?.Version, "3.0.1", StringComparison.Ordinal) == -1)
             {
                 Logger.LogWarning(
                     $"The document has version {result.SpecificationVersion} which is not the recommended");
-
-                if(result.SpecificationVersion == Microsoft.OpenApi.OpenApiSpecVersion.OpenApi2_0)
-                    Logger.LogInformation("Updating to OpenApi 3.0");
-
-                if (result.SpecificationVersion == Microsoft.OpenApi.OpenApiSpecVersion.OpenApi2_0)
-                    return await ParseDocument(await definitionSource.Update(cancellationToken), cancellationToken);
+                Logger.LogInformation("Updating to OpenApi 3.0");
+                return await ParseDocument(await definitionSource.Update(cancellationToken), cancellationToken);
             }
 
             return document;

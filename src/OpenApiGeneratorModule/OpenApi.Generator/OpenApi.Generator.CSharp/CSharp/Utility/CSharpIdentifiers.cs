@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
 namespace OpenApi.Generator.CSharp.Utility;
@@ -12,65 +13,46 @@ public static class CSharpIdentifiers
         "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for",
         "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock",
         "long", "namespace", "new", "null", "object", "operator", "out", "override", "params",
-        "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed",
+        "partial", "private", "protected", "public", "readonly", "record", "ref", "return", "sbyte", "sealed",
         "short", "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw",
         "true", "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using",
         "virtual", "void", "volatile", "while"
     };
 
-    public static IReadOnlyCollection<string> Keywords { get { return _keywords; } }
-
-    public static bool TryParseRawIdentifier(string str, out string parsed)
+    public static string CreateValidIdentifier(string identifier, char defaultReplacementCharacter = '_', params (char Match, string Replacement)[] matchAndReplaceMap)
     {
-        if (string.IsNullOrEmpty(str) || _keywords.Contains(str)) { parsed = null; return false; }
+        if (string.IsNullOrWhiteSpace(identifier)) return "null";
+        if (_keywords.Contains(identifier)) return $"@{identifier}";
 
-        StringBuilder sb = new StringBuilder(str.Length);
-
-        int verbatimCharWidth = str[0] == '@' ? 1 : 0;
-
-        for (int i = verbatimCharWidth; i < str.Length;) //Manual increment
+        var sb = new StringBuilder(identifier.Length);
+        for (var i = 0; i < identifier.Length; i++)
         {
-            char c = str[i];
+            char c = identifier[i];
 
-            if (c == '\\')
-            {
-                char next = str[i + 1];
-
-                int charCodeLength;
-                if (next == 'u') charCodeLength = 4;
-                else if (next == 'U') charCodeLength = 8;
-                else { parsed = null; return false; }
-                //No need to check for escaped backslashes or special sequences like \n,
-                //as they not valid identifier characters
-
-                int charCode;
-                if (!TryParseHex(str.Substring(i + 2, charCodeLength), out charCode)) { parsed = null; return false; }
-
-                sb.Append(char.ConvertFromUtf32(charCodeLength)); //Handle characters above 2^16 by converting them to a surrogate pair
-                i += 2 + charCodeLength;
-            }
-            else if (char.GetUnicodeCategory(str, i) == UnicodeCategory.Format)
-            {
-                //Use (string, index) in order to handle surrogate pairs
-                //Skip this character
-                if (char.IsSurrogatePair(str, i)) i += 2;
-                else i += 1;
-            }
-            else
-            {
+            if (TryGetMappedCharacter(matchAndReplaceMap, c, out string replacement))
+                sb.Append(replacement);
+            else if (i == 0 && c == '@')
                 sb.Append(c);
-                i++;
-            }
+            else if (char.IsAscii(c) && char.IsLetterOrDigit(c) || c == '_')
+                sb.Append(c);
+            else
+                sb.Append(defaultReplacementCharacter);
         }
 
-        parsed = sb.ToString();
-        return true;
+        return sb.ToString();
     }
 
-    private static bool TryParseHex(string str, out int result)
+    static bool TryGetMappedCharacter((char Match, string Replacement)[] matchAndReplaceMap, char c, out string replacement)
     {
-        return int.TryParse(str, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out result);
-        //NumberStyles.AllowHexSpecifier forces all characters to be hex digits
+        var map = matchAndReplaceMap.FirstOrDefault(map => map.Match == c);
+        if (map.Match == c)
+        {
+            replacement = map.Replacement;
+            return true;
+        }
+
+        replacement = null;
+        return false;
     }
 
     public static bool IsValidParsedIdentifier(string str)
@@ -110,7 +92,7 @@ public static class CSharpIdentifiers
             case UnicodeCategory.ConnectorPunctuation:
             case UnicodeCategory.NonSpacingMark:
             case UnicodeCategory.SpacingCombiningMark:
-                //UnicodeCategory.Format handled in TryParseRawIdentifier()
+                //UnicodeCategory.Format handled in CreateValidIdentifier()
                 return true;
             default:
                 return false;

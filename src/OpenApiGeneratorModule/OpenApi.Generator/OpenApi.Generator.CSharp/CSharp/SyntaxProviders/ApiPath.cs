@@ -12,9 +12,9 @@ public record ApiPath(string Path, OpenApiPathItem PathItem)
     public string[] GetPathAsSubPaths()
         => Path.Split('/');
 
-    public IEnumerable<Operation> GetOperations(ApiPath apiPath)
+    public IEnumerable<Operation> GetOperations()
     {
-        foreach (var keyPair in apiPath.PathItem.Operations)
+        foreach (var keyPair in PathItem.Operations)
         {
             yield return new Operation(keyPair.Key, keyPair.Value);
         }

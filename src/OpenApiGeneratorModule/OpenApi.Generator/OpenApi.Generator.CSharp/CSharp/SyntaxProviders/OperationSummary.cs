@@ -48,6 +48,6 @@ public struct OperationSummary
             return $"{lines[0]}{endTag}";
 
         var prefix = $"{Environment.NewLine}{indentation}";
-        return $"{prefix}{string.Join(prefix, lines)}{prefix}{endTag}";
+        return $"{Environment.NewLine}{indentation}{string.Join(indentation, lines)}{Environment.NewLine}{indentation}{endTag}";
     }
 }

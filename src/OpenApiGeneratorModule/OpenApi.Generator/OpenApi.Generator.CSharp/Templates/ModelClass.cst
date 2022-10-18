@@ -1,6 +1,7 @@
 ﻿@using Microsoft.OpenApi.Any
 @using Microsoft.OpenApi.Models
 @using OpenApi.Generator.CSharp
+@using OpenApi.Generator.CSharp.SyntaxProviders
 @inherits CodeTemplate<(string Name, OpenApiSchema Type)>
 @{
     DisableEncoding = true;
@@ -18,7 +19,7 @@
 
             await IncludeAsync("Summary", ("Summary", property.Value.Description));
         @:[JsonPropertyName("@(property.Key)")]
-        @:public @(GetTypeName(property)) @(GetPropertyName(property)) { @(ShowGet(property)) @(ShowSet(property)) }
+        @:public @(property.GetTypeName()) @(property.GetPropertyName()) { @(ShowGet(property)) @(ShowSet(property)) }
         }
     @:}
     }
