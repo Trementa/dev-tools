@@ -10,13 +10,13 @@ using Client.Request;
 using Configuration;
 using Types;
 
-public abstract partial class BaseApi<T> : RequestBuilderState
+public abstract partial class BaseApi<TApi> : RequestBuilderState where TApi : BaseApi<TApi>
 {
-    protected BaseApi(IConnection connection, ILogger<T> logger) : base(connection, logger)
+    protected BaseApi(IConnection connection, ILogger<TApi> logger) : base(connection, logger)
     { }
 
-    protected virtual async Task<T> Execute<T>(HttpMethod httpMethod, UriMethod relativePath, Func<IRequestBuilder, Task<IRequestBuilder>> requestBuilder, CancellationToken cancellationToken) =>
-        (T)await Execute(httpMethod, relativePath, requestBuilder, cancellationToken).ConfigureAwait(false);
+    protected virtual async Task<TResult> Execute<TResult>(HttpMethod httpMethod, UriMethod relativePath, Func<IRequestBuilder, Task<IRequestBuilder>> requestBuilder, CancellationToken cancellationToken) =>
+        await Execute(httpMethod, relativePath, requestBuilder, cancellationToken).ConfigureAwait(false);
 }
 
 public abstract partial class BaseApi
