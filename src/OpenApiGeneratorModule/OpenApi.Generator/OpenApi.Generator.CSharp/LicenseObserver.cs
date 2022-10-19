@@ -19,11 +19,13 @@ namespace OpenApi.Generator
             (Options, Logger) =
             (options, logger);
 
-        private string license = string.Empty;
-        protected string License => license ??= $"/*{ Environment.NewLine }{ GetLicenseFile() }{ Environment.NewLine }*/{ Environment.NewLine }";
+        protected static string License { get; } = GetLicenseFile();
 
-        string GetLicenseFile() =>
-            new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(LicenseHeaderFileName)!).ReadToEnd();
+        static string GetLicenseFile()
+        {
+            var license = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(LicenseHeaderFileName)!).ReadToEnd();
+            return $"/*{Environment.NewLine}{license}{Environment.NewLine}*/{Environment.NewLine}";
+        }
 
         public void OnCompleted()
         {

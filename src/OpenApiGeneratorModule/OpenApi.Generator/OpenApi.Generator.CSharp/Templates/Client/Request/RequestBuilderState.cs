@@ -19,9 +19,6 @@ public abstract class RequestBuilderState
     protected Uri BaseUri => Connection.BaseUri;
     protected ILogger Logger { get; }
 
-    protected async Task<IRequestBuilder> ConfigureRequest(RequestBuilder requestBuilder, CancellationToken cancellationToken) =>
-        await Connection.ConfigureRequest(requestBuilder, cancellationToken);
-
     protected async virtual Task<dynamic> Execute(HttpMethod httpMethod, UriMethod relativePath, Func<IRequestBuilder, Task<IRequestBuilder>> requestBuilder, CancellationToken cancellationToken)
     {
         var request = await requestBuilder(await ConfigureRequest(RequestBuilder.Create(httpMethod, BaseUri, relativePath), cancellationToken)).ConfigureAwait(false);
@@ -32,4 +29,7 @@ public abstract class RequestBuilderState
         using var httpResponse = await HttpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false);
         return await request.HandleResponse(httpResponse, cancellationToken).ConfigureAwait(false);
     }
+
+    protected async Task<IRequestBuilder> ConfigureRequest(RequestBuilder requestBuilder, CancellationToken cancellationToken) =>
+        await Connection.ConfigureRequest(requestBuilder, cancellationToken);
 }
