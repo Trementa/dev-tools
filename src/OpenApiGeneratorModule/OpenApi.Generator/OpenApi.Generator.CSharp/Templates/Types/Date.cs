@@ -22,7 +22,7 @@ using System;
 using System.Globalization;
 using System.Runtime.Serialization;
 
-namespace GK.WebLib.Types
+namespace Templates.Types
 {
     [Serializable]
     public struct Date : IComparable, IFormattable, ISerializable, IComparable<Date>, IEquatable<Date>

@@ -1,4 +1,4 @@
-namespace GK.WebLib.Types
+namespace Templates.Types
 {
     public class ClientIdentifier : Primitive<string>
     {

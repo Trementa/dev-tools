@@ -8,7 +8,7 @@ namespace OpenApi.Generator.Test
         public static void Main()
         {
             Generator.Program.Main(
-               "-o", @"D:\temp\Drofus",
+               "-o", @"./temp/Drofus",
                "-s", @"https://api-no.drofus.com/swagger/v1/swagger.json",
                "--GenNamespace", "Drofus.Api.Proxy",
                "--SDKNamespace", "Drofus.WebLib",
@@ -16,7 +16,9 @@ namespace OpenApi.Generator.Test
                "-f", "yes",
                "-g", "yes",
                "-l", "C#",
-               "--outputType", "Api|Model|SDK");
+               "--outputType", "Api|Model|SDK",
+               "--excludeAPIParams", "db, pr",
+               "--useHTTPverbs");
         }
 
         static string GetProjectPath(string projectName, DirectoryInfo dirInfo)

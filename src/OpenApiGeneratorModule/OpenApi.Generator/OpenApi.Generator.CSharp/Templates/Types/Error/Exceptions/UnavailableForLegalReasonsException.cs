@@ -22,11 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-namespace GK.WebLib.Types.Error.Exceptions
+namespace Templates.Types.Error.Exceptions
 {
     using System;
-    using GK.WebLib.Types;
-    using static GK.WebLib.Types.StatusCodes;
+    using Types;
+    using static Types.StatusCodes;
 
     public class UnavailableForLegalReasonsException : ClientErrorException
     {

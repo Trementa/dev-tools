@@ -26,7 +26,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace GK.WebLib.Types
+namespace Templates.Types
 {
     /// <summary>
     /// A MultiValueDictionary can be viewed as a <see cref="IDictionary" /> that allows multiple

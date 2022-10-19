@@ -1,7 +1,6 @@
-﻿namespace GK.WebLib.Configuration
+﻿namespace Templates.Configuration;
+
+public interface IConfigure
 {
-    public interface IConfigure
-    {
-        void Configure();
-    }
+    void Configure();
 }

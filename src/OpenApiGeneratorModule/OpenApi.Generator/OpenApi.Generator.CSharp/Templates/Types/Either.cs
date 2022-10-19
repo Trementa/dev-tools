@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GK.WebLib.Types
+namespace Templates.Types
 {
     public abstract class Either<TLeft, TRight>
     {

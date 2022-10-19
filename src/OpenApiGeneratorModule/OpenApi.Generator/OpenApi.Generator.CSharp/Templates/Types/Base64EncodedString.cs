@@ -24,7 +24,7 @@ SOFTWARE.
 using System;
 using System.Linq;
 
-namespace GK.WebLib.Types
+namespace Templates.Types
 {
     public partial struct Base64EncodedString
     {

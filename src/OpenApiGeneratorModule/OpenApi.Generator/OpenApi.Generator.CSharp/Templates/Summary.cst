@@ -1,4 +1,4 @@
-﻿@using OpenApi.Generator
+﻿@using OpenApi.Generator.CSharp
 @inherits CodeTemplate<(string Tag, string Summary)>
 @{
     DisableEncoding = true;

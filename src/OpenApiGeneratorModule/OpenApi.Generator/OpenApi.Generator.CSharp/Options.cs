@@ -18,6 +18,7 @@ namespace OpenApi.Generator
                         { "--continue", "continueOnError" },
                         { "-d", "dumpTemplate" },
                         { "--dump", "dumpTemplate" },
+                        { "--excludeAPIParams", "excludeAPIParams "},
                         { "-f", "force" },
                         { "--force", "force" },
                         { "-g", "generate" },
@@ -33,6 +34,7 @@ namespace OpenApi.Generator
                         { "--source", "source" },
                         { "-t", "templateDirectory" },
                         { "--templates", "templateDirectory" },
+                        { "--useHTTPverbs", "useHTTPverbs" },
                         { "-q", "quiet" },
                         { "--quiet", "quiet" }
                     };
@@ -41,19 +43,21 @@ namespace OpenApi.Generator
 help           This help text
 
 Parameters
---generate,        -g       Generate code, default template is C#
---dump,            -d       Dump templates
---lang,            -l       Language template
---output,          -o Dir   Output directory
---templates,       -t Dir   Template directory
---source,          -s Uri   Open Api source definition (v3+)
+--addtraceid       -a       Adds optional x-trace-id header to all apis
 --convertToV3,     -3 [Uri] Convert definition to V3 if less
 --continueOnError, -c       Continue executing after an error occurs
+--dump,            -d       Dump templates
+--excludeAPIParams          Comma separated list of arguments to ignore when generating API methods
 --force,           -f       Overwrite existing files
+--generate,        -g       Generate code, default template is C#
+--lang,            -l       Language template
 --namespace,       -n @Ns   Namespace to use for output
+--output,          -o Dir   Output directory
+--source,          -s Uri   Open Api source definition (v3+)
+--templates,       -t Dir   Template directory
+--outputType                All|[SDK|Api|Model]
 --quiet,           -q       Don't show any log information
---addtraceid       -a       Adds optional x-trace-id header to all apis
---outputType                All|[SDK|Api|Model]";
+--useHTTPVerbs              Use HTTP method names in API methods";
         static Assembly assembly => Assembly.GetExecutingAssembly();
         protected readonly IConfiguration Configuration;
 
@@ -129,6 +133,10 @@ Parameters
         public bool Quiet => !string.IsNullOrWhiteSpace(Configuration["quiet"]);
 
         public bool ContinueOnError => !string.IsNullOrWhiteSpace(Configuration["continueOnError"]);
+
+        public bool UseHTTPverbs => !string.IsNullOrWhiteSpace(Configuration["generate"]);
+
+        public IEnumerable<string> ExcludeAPIParams => Configuration["excludeAPIParams"].Split(',').Select(s => s.Trim());
 
         [Flags]
         public enum OutputTypeEnum

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Net;
 
-namespace GK.WebLib.Types
+namespace Templates.Types
 {
     public static class StatusCodes
     {

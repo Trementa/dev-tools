@@ -1,10 +1,8 @@
-﻿using GK.WebLib.Types;
+﻿namespace Templates.Extensions;
+using Types;
 
-namespace GK.WebLib.Extensions
+public static class DateExtensions
 {
-    public static class DateExtensions
-    {
-        public static Date Tomorrow() =>
-            Date.Today.AddDays(1);
-    }
+    public static Date Tomorrow() =>
+        Date.Today.AddDays(1);
 }

@@ -22,10 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-namespace GK.WebLib.Types.Error.Exceptions
+namespace Templates.Types.Error.Exceptions
 {
     using System;
-    using GK.WebLib.Types;
+    using Types;
 
     public class ServerErrorException : ResponseErrorException
     {
