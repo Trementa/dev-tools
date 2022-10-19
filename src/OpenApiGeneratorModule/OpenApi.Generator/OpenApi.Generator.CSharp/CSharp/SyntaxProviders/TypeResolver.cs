@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Text.RegularExpressions;
 using Microsoft.OpenApi.Models;
 
 namespace OpenApi.Generator.CSharp.SyntaxProviders;
@@ -22,10 +22,10 @@ public static class TypeResolver
                 "string" when string.IsNullOrWhiteSpace(type.Schema.Format) => ("string", "text/plain"),
                 "string" => ($"string+{type.Schema.Format}", "text/plain"),
                 "date" => ($"string+date", "text/plain"),
-                "number" when string.IsNullOrWhiteSpace(type.Schema.Format) => ("number", "text/plain"),
-                "number" => (type.Schema.Format, "text/plain"),
-                "integer" when string.IsNullOrWhiteSpace(type.Schema.Format) => ("integer", "text/plain"),
-                "integer" => ($"integer+{type.Schema.Format}", "text/plain"),
+                "number" when string.IsNullOrWhiteSpace(type.Schema.Format) => ("decimal", "text/plain"),
+                "number" => ($"decimal+{type.Schema.Format}", "text/plain"),
+                "integer" when string.IsNullOrWhiteSpace(type.Schema.Format) => ("int", "text/plain"),
+                "integer" => ($"int+{type.Schema.Format}", "text/plain"),
                 "boolean" => ("bool", "text/plain"),
                 "array" => ($"List<{GetCompileTimeType((type.Name, type.Schema.Items)).Type}>", GetCompileTimeType((type.Name, type.Schema.Items)).ContentType),
                 //"object" => ($"{type.Name.ToPascalCase()}Type", "application/json"), /// Inline type declaration
@@ -37,6 +37,7 @@ public static class TypeResolver
         }
     }
 
+    static Regex compositePlusType = new("(.*)\\+.*");
     static (string Type, string ContentType) GetWellKnownTypeName((string Type, string ContentType) typeName) =>
         (typeName.Type switch
         {
@@ -51,12 +52,19 @@ public static class TypeResolver
             "string+hostname" => "HostName",
             "string+ipv4" => "IpV4",
             "string+ipv6" => "IpV6",
-            "number" => "decimal",
-            "integer" => "int",
-            "integer+byte" => "byte",
-            "integer+int16" => "short",
-            "integer+int32" => "int",
-            "integer+int64" => "long",
-            _ => typeName.Type.Replace("string+", "").Replace("integer+", "")
+            "decimal+double" => "double",
+            "decimal+float" => "float",
+            "int+byte" => "byte",
+            "int+int16" => "short",
+            "int+int32" => "int",
+            "int+int64" => "long",
+            var composite when IsMatch(composite) => GetMatch(composite),
+            var verbatim => verbatim
         }, typeName.ContentType);
+
+    static bool IsMatch(string composite)
+        => compositePlusType.IsMatch(composite);
+
+    static string GetMatch(string composite)
+        => compositePlusType.Match(composite).Groups[1].Value;
 }

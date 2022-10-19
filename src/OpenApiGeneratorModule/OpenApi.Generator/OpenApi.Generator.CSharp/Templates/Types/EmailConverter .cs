@@ -25,7 +25,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace GK.WebLib.Types
+namespace Templates.Types
 {
     public class EmailConverter : JsonConverter<Email>
     {

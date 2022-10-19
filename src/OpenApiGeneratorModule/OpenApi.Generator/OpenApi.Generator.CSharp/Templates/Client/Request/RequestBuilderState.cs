@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace GK.WebLib.Client.Request;
+namespace Templates.Client.Request;
 
 using Configuration;
 using Types;

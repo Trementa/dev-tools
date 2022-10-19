@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GK.WebLib.Client.Request;
+namespace Templates.Client.Request;
 
 public interface IRequestBuilder
 {

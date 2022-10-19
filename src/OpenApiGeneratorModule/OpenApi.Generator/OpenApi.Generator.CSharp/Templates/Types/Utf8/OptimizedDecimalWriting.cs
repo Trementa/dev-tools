@@ -25,7 +25,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace GK.WebLib.Types.Utf8
+namespace Templates.Types.Utf8
 {
     internal static class OptimizedDecimalWriting
     {

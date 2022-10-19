@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace GK.WebLib.Types
+namespace Templates.Types
 {
     public interface IJsonModel
     {

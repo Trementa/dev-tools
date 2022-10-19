@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GK.WebLib.Client.Response;
+namespace Templates.Client.Response;
 
 public interface IResponseHandler
 {

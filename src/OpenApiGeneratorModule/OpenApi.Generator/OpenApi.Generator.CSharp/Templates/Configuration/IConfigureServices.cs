@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace GK.WebLib.Configuration;
+namespace Templates.Configuration;
 
 public interface IConfigureServices
 {

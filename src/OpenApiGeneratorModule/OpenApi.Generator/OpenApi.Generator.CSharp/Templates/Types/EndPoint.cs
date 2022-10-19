@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 
-namespace GK.WebLib.Types
+namespace Templates.Types
 {
     public record EndPoint(Uri baseUri, Uri path)
     {

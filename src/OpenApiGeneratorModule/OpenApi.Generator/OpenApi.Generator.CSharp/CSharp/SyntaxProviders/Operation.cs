@@ -23,7 +23,7 @@ public static partial class Extensions
         => (originalName, CSharpIdentifiers.CreateValidIdentifier(originalName, defaultReplacementCharacter, matchAndReplaceMap));
 }
 
-public record Operation(OperationType OperationType, OpenApiOperation ApiOperation)
+public record Operation(OperationType OperationType, OpenApiOperation ApiOperation, Options Options)
 {
     public string GetReturnType()
     {
@@ -82,6 +82,9 @@ public record Operation(OperationType OperationType, OpenApiOperation ApiOperati
     {
         foreach (var parameter in ApiOperation.Parameters)
         {
+            if (Options.ExcludeAPIParams.Contains(parameter.Name))
+                continue;
+
             var validVariableName = parameter.Name.GetValidVariableName();
             yield return new FunctionArgument {
                 Type = TypeResolver.GetCompileTimeType((parameter.Name, parameter.Schema)).Type,
@@ -115,9 +118,14 @@ public record Operation(OperationType OperationType, OpenApiOperation ApiOperati
                 if (!string.IsNullOrWhiteSpace(operationName))
                     operationName = $"{OperationType}{operationName}";
                 else
-                    operationName = $"Unknown operation id ({OperationType}, {ApiOperation}";
+                    operationName = $"UnknownOperationId{OperationType}{ApiOperation}";
             }
         }
+
+        operationName = operationName.ToPascalCase();
+        if (Options.UseHTTPverbs)
+            operationName = GetOperationType() + operationName;
+
         return operationName.ToPascalCase();
     }
 

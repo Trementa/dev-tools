@@ -1,4 +1,4 @@
-﻿namespace GK.WebLib.Configuration;
+﻿namespace Templates.Configuration;
 
 public interface IConfigure
 {

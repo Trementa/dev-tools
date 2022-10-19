@@ -23,7 +23,7 @@ SOFTWARE.
 */
 using System;
 
-namespace GK.WebLib.Types.Utf8
+namespace Templates.Types.Utf8
 {
     internal static class Utf8Constants
     {

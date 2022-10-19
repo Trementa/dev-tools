@@ -24,9 +24,9 @@ public static class Program
     static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         if (e.IsTerminating)
-            System.Console.Error.WriteLine("Process terminating");
+            Console.Error.WriteLine("Process terminating");
 
-        System.Console.Error.WriteLine($"Error: {e.ToString()}");
+        Console.Error.WriteLine($"Error: {e}");
     }
 
     static void ShowHelp() =>

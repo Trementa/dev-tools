@@ -88,10 +88,21 @@ public abstract class CodeTemplate<TModel> : TemplatePage<TModel>
         return $"BaseApi<${model.ClassName}>";
     }
 
-    protected string GetEnumBaseType(OpenApiSchema schema) => schema.Enum.Count > 0 ? schema.Format : schema.Type;
+    protected string GetEnumBaseType(OpenApiSchema schema)
+    {
+        if (schema.Enum.Count > 0)
+        {
+            if (!string.IsNullOrWhiteSpace(schema.Format))
+                return schema.Format;
+
+            return "int";
+        }
+
+        return schema.Type;
+    }
 
     protected IEnumerable<ApiPath> GetPathes((string ClassName, IEnumerable<(string, OpenApiPathItem)> pathes) model) =>
-        model.pathes.Select(p => new ApiPath(p.Item1, p.Item2));
+        model.pathes.Select(p => new ApiPath(p.Item1, p.Item2, Options));
 
     public string TemplateKey =>
         PageContext.ExecutingPageKey.StartsWith('/') ? PageContext.ExecutingPageKey.Substring(1) : PageContext.ExecutingPageKey;

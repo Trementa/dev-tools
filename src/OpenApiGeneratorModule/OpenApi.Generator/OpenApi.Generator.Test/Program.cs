@@ -16,7 +16,9 @@ namespace OpenApi.Generator.Test
                "-f", "yes",
                "-g", "yes",
                "-l", "C#",
-               "--outputType", "Api|Model|SDK");
+               "--outputType", "Api|Model|SDK",
+               "--excludeAPIParams", "db, pr",
+               "--useHTTPverbs");
         }
 
         static string GetProjectPath(string projectName, DirectoryInfo dirInfo)

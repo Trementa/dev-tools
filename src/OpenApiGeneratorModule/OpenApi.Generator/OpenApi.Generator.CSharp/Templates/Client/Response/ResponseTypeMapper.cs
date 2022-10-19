@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GK.WebLib.Client.Response;
+namespace Templates.Client.Response;
 using Types;
 
 public class ResponseTypeMapper

@@ -29,7 +29,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace GK.WebLib.Types
+namespace Templates.Types
 {
     public class PrimitiveConverterFactory : JsonConverterFactory
     {

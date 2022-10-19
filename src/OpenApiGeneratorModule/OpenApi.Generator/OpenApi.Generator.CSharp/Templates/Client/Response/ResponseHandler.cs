@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GK.WebLib.Client.Response;
+namespace Templates.Client.Response;
 
 using Serializer;
 using Types;

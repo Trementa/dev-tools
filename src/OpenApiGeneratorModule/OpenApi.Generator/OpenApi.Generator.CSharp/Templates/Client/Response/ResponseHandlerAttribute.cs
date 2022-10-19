@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GK.WebLib.Client.Response;
+namespace Templates.Client.Response;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, Inherited = true)]
 public class ResponseHandlerAttribute : Attribute

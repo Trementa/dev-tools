@@ -9,7 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace GK.WebLib.Client.Request;
+namespace Templates.Client.Request;
+
 using Response;
 using Serializer;
 using Types;

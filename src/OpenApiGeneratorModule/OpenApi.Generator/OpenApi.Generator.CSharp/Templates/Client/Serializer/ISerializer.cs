@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GK.WebLib.Client.Serializer;
+namespace Templates.Client.Serializer;
 
 public interface ISerializer
 {

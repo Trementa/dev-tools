@@ -4,7 +4,7 @@ using Microsoft.OpenApi.Models;
 
 namespace OpenApi.Generator.CSharp.SyntaxProviders;
 
-public record ApiPath(string Path, OpenApiPathItem PathItem)
+public record ApiPath(string Path, OpenApiPathItem PathItem, Options Options)
 {
     public string GetOperationPath()
         => Path.StartsWith('/') ? Path.Substring(1) : Path;
@@ -16,7 +16,7 @@ public record ApiPath(string Path, OpenApiPathItem PathItem)
     {
         foreach (var keyPair in PathItem.Operations)
         {
-            yield return new Operation(keyPair.Key, keyPair.Value);
+            yield return new Operation(keyPair.Key, keyPair.Value, Options);
         }
     }
 }

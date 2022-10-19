@@ -24,7 +24,7 @@ SOFTWARE.
 using System;
 using System.ComponentModel;
 
-namespace GK.WebLib.Types
+namespace Templates.Types
 {
     public abstract class Primitive<T> : IEquatable<Primitive<T>>
     {
