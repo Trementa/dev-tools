@@ -1,12 +1,61 @@
 <Project>
-	<PropertyGroup>
-		<LocalNuGetPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))nuget</LocalNuGetPath>
-		<PackageOutputDir>$(LocalNuGetPath)</PackageOutputDir>
-		<BuildFolder Condition=" '$(Configuration)' == 'Debug' ">$(MSBuildProjectDirectory)\bin\debug</BuildFolder>
-		<BuildFolder Condition=" '$(Configuration)' == 'Release' ">$(MSBuildProjectDirectory)\bin\release</BuildFolder>
-	</PropertyGroup>
-	
-	<Target Name="CopyPackage" AfterTargets="Pack">
-		<Copy SourceFiles="$(BuildFolder)\$(PackageId).$(PackageVersion).nupkg" DestinationFolder="$(LocalNuGetPath)\$(PackageId).$(PackageVersion).nupkg" />
-	</Target>
+	<!-- <PropertyGroup> -->
+		<!-- <LocalNuGetPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))nuget</LocalNuGetPath> -->
+		<!-- <PackageOutputDir>$(LocalNuGetPath)</PackageOutputDir> -->
+		<!-- <BuildFolder Condition=" '$(Configuration)' == 'Debug' ">$(MSBuildProjectDirectory)\bin\debug</BuildFolder> -->
+		<!-- <BuildFolder Condition=" '$(Configuration)' == 'Release' ">$(MSBuildProjectDirectory)\bin\release</BuildFolder> -->
+	<!-- </PropertyGroup> -->
+
+	<!-- <Target Name="CopyPackage" AfterTargets="Pack"> -->
+		<!-- <Copy SourceFiles="$(BuildFolder)\$(PackageId).$(PackageVersion).nupkg" DestinationFolder="$(LocalNuGetPath)\$(PackageId).$(PackageVersion).nupkg" /> -->
+	<!-- </Target> -->
+
+	<Target Name="CopyBinaryModules" AfterTargets="Build" Condition=" '$(Configuration)' == 'Release' And $(ProjectName.EndsWith('Module')) ">
+		<ItemGroup>
+			<FilesToCopy Include="$(TargetDir)**\*.*" />
+		</ItemGroup>
+
+		<PropertyGroup>
+			<DestinationFolder>$(MSBuildThisFileDirectory)DevTools\$(ProjectName)</DestinationFolder>
+		</PropertyGroup>
+
+		<Message Text="DESTINATIONFOLDER: $([System.IO.Path]::GetFullPath($(DestinationFolder)))" />
+
+		<Copy SourceFiles="@(FilesToCopy)"
+			  DestinationFolder="$(DestinationFolder)\%(RecursiveDir)" 
+			  OverwriteReadOnlyFiles="True"
+			  SkipUnchangedFiles="True" >
+			<Output TaskParameter="CopiedFiles" ItemName="Changed"/>
+		</Copy>
+
+		<Message Text="%(changed.identity)" />
+    </Target>
 </Project>
+
+<!-- How to iterate and access properties -->
+
+ <!--<ItemGroup>
+    <TestItem Include="test1" />
+    <TestItem Include="test2" />
+    <TestItem Include="test3" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TestProperty>Property Value</TestProperty>
+  </PropertyGroup>
+
+  <Target Name="TestMessage" AfterTargets="Build" >
+
+    --><!-- Use $(Property Name) to reference a property --><!--
+    <Message Text="$(TestProperty)" Importance="high"/>
+
+    --><!-- Use @(Item Name) to output a semi-colon
+         separated list of items on one line      --><!--
+    <Message Text="@(TestItem)" Importance="high"/>
+
+    --><!-- Use %(Item Name.Metadata Property Name) to 
+         call the Message task once for each item.   --><!--
+    --><!-- This will output each item on a separate line --><!--
+    <Message Text="%(TestItem.Identity)" Importance="high"/>
+
+  </Target>-->
