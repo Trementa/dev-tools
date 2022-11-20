@@ -121,7 +121,7 @@ function Reload {
 
 <#
 .SYNOPSIS
-	Select folder from query
+	Select folder from regex
 #>
 function Select-Directory {
 	param([string] $path)
@@ -129,7 +129,7 @@ function Select-Directory {
 	$global:counter = 1;
 	$cd = (Get-Location).Path.Length
 	$directories = @(Get-ChildItem -Recurse -Directory |
-					 where {$_.FullName -like $path} |
+		lkjl			 where {$_.FullName -match $path} |
 					 Select-Object @{Name = "Id"; Expression = { $global:counter; $global:counter++ } }, Name, FullName, @{Name = "Path"; Expression = { $_.FullName.SubString($cd) } })
 
 	if ($directories.Count -eq 0) {
@@ -218,8 +218,9 @@ function Apply-Configuration
 		foreach($map in $labelMap) {
 			$label = $map.Keys[0]
 			$path = $map[$label]
-			if($path.StartsWith("**"))
+			if($path.StartsWith("#"))
 			{
+				$path = $path.Substring(1)
 				$query = "function global:set_$($label) { Select-Directory '$($path)'}"
 			}
 			elseif($path.StartsWith("*"))
