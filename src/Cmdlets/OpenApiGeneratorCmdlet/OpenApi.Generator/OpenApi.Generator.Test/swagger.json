@@ -1,0 +1,885 @@
+{
+  "info": {
+    "version": "3.0",
+    "description": "Weather forecast for a specified place",
+    "license": {
+      "url": "http://creativecommons.org/licenses/by/4.0",
+      "name": "CC BY 4.0"
+    },
+    "termsOfService": "/doc/TermsOfService",
+    "title": "Locationforecast",
+    "contact": {
+      "url": "http://met.no",
+      "name": "Developer Support",
+      "email": "weatherapi-adm@met.no"
+    }
+  },
+  "paths": {
+    "/schema": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Schema for XML data",
+        "tags": [
+          "metadata"
+        ],
+        "x-mojo-name": "schema",
+        "produces": [
+          "text/xml"
+        ]
+      }
+    },
+    "/complete.{format}": {
+      "get": {
+        "tags": [
+          "data"
+        ],
+        "responses": {
+          "200": {
+            "schema": {
+              "$ref": "#/definitions/METJSONForecast"
+            },
+            "description": "Success"
+          }
+        },
+        "description": "Weather forecast for a specified place",
+        "parameters": [
+          {
+            "description": "Whole meters above sea level",
+            "required": false,
+            "format": "integer",
+            "type": "integer",
+            "in": "query",
+            "name": "altitude"
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "format": "float",
+            "type": "number",
+            "required": true,
+            "description": "Latitude"
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "format": "float",
+            "type": "number",
+            "description": "Longitude",
+            "required": true
+          },
+          {
+            "name": "format",
+            "in": "path",
+            "format": "string",
+            "type": "string",
+            "required": true,
+            "enum": [
+              "json"
+            ],
+            "description": "format code (file extension)"
+          }
+        ],
+        "produces": [
+          "application/json;charset=UTF-8"
+        ],
+        "x-mojo-name": "run"
+      }
+    },
+    "/status.{format}": {
+      "get": {
+        "tags": [
+          "data"
+        ],
+        "description": "Weather forecast for a specified place",
+        "responses": {
+          "200": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Success"
+          }
+        },
+        "parameters": [
+          {
+            "name": "format",
+            "in": "path",
+            "type": "string",
+            "format": "string",
+            "enum": [
+              "json"
+            ],
+            "description": "format code (file extension)",
+            "required": true
+          }
+        ],
+        "produces": [
+          "application/json;charset=UTF-8"
+        ],
+        "x-mojo-name": "run"
+      }
+    },
+    "/complete": {
+      "get": {
+        "responses": {
+          "200": {
+            "schema": {
+              "$ref": "#/definitions/METJSONForecast"
+            },
+            "description": "Success"
+          }
+        },
+        "description": "Weather forecast for a specified place",
+        "tags": [
+          "data"
+        ],
+        "x-mojo-name": "run",
+        "produces": [
+          "application/json;charset=UTF-8"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "altitude",
+            "required": false,
+            "description": "Whole meters above sea level",
+            "type": "integer",
+            "format": "integer"
+          },
+          {
+            "in": "query",
+            "name": "lat",
+            "required": true,
+            "description": "Latitude",
+            "type": "number",
+            "format": "float"
+          },
+          {
+            "in": "query",
+            "name": "lon",
+            "description": "Longitude",
+            "required": true,
+            "type": "number",
+            "format": "float"
+          }
+        ]
+      }
+    },
+    "/compact.{format}": {
+      "get": {
+        "x-mojo-name": "run",
+        "produces": [
+          "application/json;charset=UTF-8"
+        ],
+        "parameters": [
+          {
+            "format": "integer",
+            "type": "integer",
+            "description": "Whole meters above sea level",
+            "required": false,
+            "name": "altitude",
+            "in": "query"
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "format": "float",
+            "type": "number",
+            "required": true,
+            "description": "Latitude"
+          },
+          {
+            "type": "number",
+            "format": "float",
+            "required": true,
+            "description": "Longitude",
+            "name": "lon",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "enum": [
+              "json"
+            ],
+            "description": "format code (file extension)",
+            "type": "string",
+            "format": "string",
+            "in": "path",
+            "name": "format"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/METJSONForecast"
+            }
+          }
+        },
+        "description": "Weather forecast for a specified place",
+        "tags": [
+          "data"
+        ]
+      }
+    },
+    "/classic.{format}": {
+      "get": {
+        "x-mojo-name": "run",
+        "produces": [
+          "application/xml"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "altitude",
+            "description": "Whole meters above sea level",
+            "required": false,
+            "type": "integer",
+            "format": "integer"
+          },
+          {
+            "in": "query",
+            "name": "lat",
+            "description": "Latitude",
+            "required": true,
+            "type": "number",
+            "format": "float"
+          },
+          {
+            "type": "number",
+            "format": "float",
+            "description": "Longitude",
+            "required": true,
+            "name": "lon",
+            "in": "query"
+          },
+          {
+            "format": "string",
+            "type": "string",
+            "enum": [
+              "xml"
+            ],
+            "description": "format code (file extension)",
+            "required": true,
+            "name": "format",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "description": "Weather forecast for a specified place",
+        "tags": [
+          "data"
+        ]
+      }
+    },
+    "/compact": {
+      "get": {
+        "x-mojo-name": "run",
+        "produces": [
+          "application/json;charset=UTF-8"
+        ],
+        "parameters": [
+          {
+            "name": "altitude",
+            "in": "query",
+            "format": "integer",
+            "type": "integer",
+            "description": "Whole meters above sea level",
+            "required": false
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "format": "float",
+            "type": "number",
+            "description": "Latitude",
+            "required": true
+          },
+          {
+            "required": true,
+            "description": "Longitude",
+            "type": "number",
+            "format": "float",
+            "in": "query",
+            "name": "lon"
+          }
+        ],
+        "description": "Weather forecast for a specified place",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/METJSONForecast"
+            }
+          }
+        },
+        "tags": [
+          "data"
+        ]
+      }
+    },
+    "/classic": {
+      "get": {
+        "produces": [
+          "application/xml"
+        ],
+        "x-mojo-name": "run",
+        "parameters": [
+          {
+            "format": "integer",
+            "type": "integer",
+            "required": false,
+            "description": "Whole meters above sea level",
+            "name": "altitude",
+            "in": "query"
+          },
+          {
+            "description": "Latitude",
+            "required": true,
+            "type": "number",
+            "format": "float",
+            "in": "query",
+            "name": "lat"
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "type": "number",
+            "format": "float",
+            "required": true,
+            "description": "Longitude"
+          }
+        ],
+        "tags": [
+          "data"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "description": "Weather forecast for a specified place"
+      }
+    },
+    "/healthz": {
+      "get": {
+        "x-mojo-name": "healthz",
+        "produces": [
+          "text/plain"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Check health status for product",
+        "tags": [
+          "metadata"
+        ]
+      }
+    },
+    "/status": {
+      "get": {
+        "responses": {
+          "200": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Success"
+          }
+        },
+        "description": "Weather forecast for a specified place",
+        "tags": [
+          "data"
+        ],
+        "parameters": [],
+        "x-mojo-name": "run",
+        "produces": [
+          "application/json;charset=UTF-8"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ForecastSummary": {
+      "type": "object",
+      "properties": {
+        "symbol_code": {
+          "$ref": "#/definitions/WeatherSymbol"
+        }
+      },
+      "description": "Summary of weather conditions.",
+      "required": [
+        "symbol_code"
+      ]
+    },
+    "ForecastTimePeriod": {
+      "type": "object",
+      "properties": {
+        "probability_of_thunder": {
+          "description": "Probability of any thunder coming for this period",
+          "type": "number",
+          "example": 54.32
+        },
+        "air_temperature_max": {
+          "description": "Maximum air temperature in period",
+          "type": "number",
+          "example": 17.1
+        },
+        "precipitation_amount_max": {
+          "example": 4.32,
+          "type": "number",
+          "description": "Maximum amount of precipitation for this period"
+        },
+        "probability_of_precipitation": {
+          "example": 37,
+          "description": "Probability of any precipitation coming for this period",
+          "type": "number"
+        },
+        "precipitation_amount": {
+          "description": "Best estimate for amount of precipitation for this period",
+          "type": "number",
+          "example": 1.71
+        },
+        "air_temperature_min": {
+          "example": 11.1,
+          "description": "Minimum air temperature in period",
+          "type": "number"
+        },
+        "ultraviolet_index_clear_sky_max": {
+          "type": "number",
+          "description": "Maximum ultraviolet index if sky is clear",
+          "example": 1
+        },
+        "precipitation_amount_min": {
+          "example": 4.32,
+          "type": "number",
+          "description": "Minimum amount of precipitation for this period"
+        }
+      },
+      "description": "Weather parameters valid for a specified time period."
+    },
+    "Forecast": {
+      "properties": {
+        "meta": {
+          "type": "object",
+          "properties": {
+            "units": {
+              "$ref": "#/definitions/ForecastUnits"
+            },
+            "updated_at": {
+              "description": "Update time for this forecast",
+              "type": "string",
+              "example": "2019-12-03T13:52:13Z"
+            }
+          },
+          "required": [
+            "updated_at",
+            "units"
+          ]
+        },
+        "timeseries": {
+          "items": {
+            "$ref": "#/definitions/ForecastTimeStep"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object",
+      "required": [
+        "meta",
+        "timeseries"
+      ],
+      "title": "Forecast timeseries"
+    },
+    "ForecastTimeStep": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "example": "2019-12-03T14:00:00Z",
+          "type": "string",
+          "description": "The time these forecast values are valid for. Timestamp in format YYYY-MM-DDThh:mm:ssZ (ISO 8601)"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "next_6_hours": {
+              "description": "Parameters with validity times over six hours. Will not exist for all time steps.",
+              "required": [
+                "summary",
+                "details"
+              ],
+              "properties": {
+                "details": {
+                  "$ref": "#/definitions/ForecastTimePeriod"
+                },
+                "summary": {
+                  "$ref": "#/definitions/ForecastSummary"
+                }
+              },
+              "type": "object"
+            },
+            "next_1_hours": {
+              "properties": {
+                "details": {
+                  "$ref": "#/definitions/ForecastTimePeriod"
+                },
+                "summary": {
+                  "$ref": "#/definitions/ForecastSummary"
+                }
+              },
+              "type": "object",
+              "required": [
+                "summary",
+                "details"
+              ],
+              "description": "Parameters with validity times over one hour. Will not exist for all time steps."
+            },
+            "next_12_hours": {
+              "properties": {
+                "details": {
+                  "$ref": "#/definitions/ForecastTimePeriod"
+                },
+                "summary": {
+                  "$ref": "#/definitions/ForecastSummary"
+                }
+              },
+              "type": "object",
+              "required": [
+                "summary",
+                "details"
+              ],
+              "description": "Parameters with validity times over twelve hours. Will not exist for all time steps."
+            },
+            "instant": {
+              "properties": {
+                "details": {
+                  "$ref": "#/definitions/ForecastTimeInstant"
+                }
+              },
+              "type": "object",
+              "description": "Parameters which applies to this exact point in time"
+            }
+          },
+          "description": "Forecast for a specific time",
+          "required": [
+            "instant"
+          ]
+        }
+      },
+      "required": [
+        "time",
+        "data"
+      ],
+      "title": "Forecast for a specific time step"
+    },
+    "METJSONForecast": {
+      "title": "GeoJSON Forecast Timeseries",
+      "required": [
+        "type",
+        "geometry",
+        "properties"
+      ],
+      "properties": {
+        "type": {
+          "example": "Feature",
+          "enum": [
+            "Feature"
+          ],
+          "type": "string"
+        },
+        "properties": {
+          "$ref": "#/definitions/Forecast"
+        },
+        "geometry": {
+          "$ref": "#/definitions/PointGeometry"
+        }
+      },
+      "type": "object"
+    },
+    "WeatherSymbol": {
+      "enum": [
+        "clearsky_day",
+        "clearsky_night",
+        "clearsky_polartwilight",
+        "fair_day",
+        "fair_night",
+        "fair_polartwilight",
+        "lightssnowshowersandthunder_day",
+        "lightssnowshowersandthunder_night",
+        "lightssnowshowersandthunder_polartwilight",
+        "lightsnowshowers_day",
+        "lightsnowshowers_night",
+        "lightsnowshowers_polartwilight",
+        "heavyrainandthunder",
+        "heavysnowandthunder",
+        "rainandthunder",
+        "heavysleetshowersandthunder_day",
+        "heavysleetshowersandthunder_night",
+        "heavysleetshowersandthunder_polartwilight",
+        "heavysnow",
+        "heavyrainshowers_day",
+        "heavyrainshowers_night",
+        "heavyrainshowers_polartwilight",
+        "lightsleet",
+        "heavyrain",
+        "lightrainshowers_day",
+        "lightrainshowers_night",
+        "lightrainshowers_polartwilight",
+        "heavysleetshowers_day",
+        "heavysleetshowers_night",
+        "heavysleetshowers_polartwilight",
+        "lightsleetshowers_day",
+        "lightsleetshowers_night",
+        "lightsleetshowers_polartwilight",
+        "snow",
+        "heavyrainshowersandthunder_day",
+        "heavyrainshowersandthunder_night",
+        "heavyrainshowersandthunder_polartwilight",
+        "snowshowers_day",
+        "snowshowers_night",
+        "snowshowers_polartwilight",
+        "fog",
+        "snowshowersandthunder_day",
+        "snowshowersandthunder_night",
+        "snowshowersandthunder_polartwilight",
+        "lightsnowandthunder",
+        "heavysleetandthunder",
+        "lightrain",
+        "rainshowersandthunder_day",
+        "rainshowersandthunder_night",
+        "rainshowersandthunder_polartwilight",
+        "rain",
+        "lightsnow",
+        "lightrainshowersandthunder_day",
+        "lightrainshowersandthunder_night",
+        "lightrainshowersandthunder_polartwilight",
+        "heavysleet",
+        "sleetandthunder",
+        "lightrainandthunder",
+        "sleet",
+        "lightssleetshowersandthunder_day",
+        "lightssleetshowersandthunder_night",
+        "lightssleetshowersandthunder_polartwilight",
+        "lightsleetandthunder",
+        "partlycloudy_day",
+        "partlycloudy_night",
+        "partlycloudy_polartwilight",
+        "sleetshowersandthunder_day",
+        "sleetshowersandthunder_night",
+        "sleetshowersandthunder_polartwilight",
+        "rainshowers_day",
+        "rainshowers_night",
+        "rainshowers_polartwilight",
+        "snowandthunder",
+        "sleetshowers_day",
+        "sleetshowers_night",
+        "sleetshowers_polartwilight",
+        "cloudy",
+        "heavysnowshowersandthunder_day",
+        "heavysnowshowersandthunder_night",
+        "heavysnowshowersandthunder_polartwilight",
+        "heavysnowshowers_day",
+        "heavysnowshowers_night",
+        "heavysnowshowers_polartwilight"
+      ],
+      "description": "A identifier that sums up the weather condition for this time period. May be used with https://api.met.no/weatherapi/weathericon/2.0/.",
+      "example": "clearsky_day"
+    },
+    "ForecastUnits": {
+      "type": "object",
+      "properties": {
+        "wind_speed": {
+          "type": "string",
+          "example": "m/s"
+        },
+        "cloud_area_fraction_medium": {
+          "type": "string",
+          "example": "%"
+        },
+        "air_pressure_at_sea_level": {
+          "type": "string",
+          "example": "hPa"
+        },
+        "air_temperature": {
+          "example": "C",
+          "type": "string"
+        },
+        "wind_speed_of_gust": {
+          "example": "m/s",
+          "type": "string"
+        },
+        "probability_of_thunder": {
+          "type": "string",
+          "example": "%"
+        },
+        "wind_from_direction": {
+          "type": "string",
+          "example": "degrees"
+        },
+        "precipitation_amount_max": {
+          "type": "string",
+          "example": "mm"
+        },
+        "relative_humidity": {
+          "example": "%",
+          "type": "string"
+        },
+        "air_temperature_max": {
+          "example": "C",
+          "type": "string"
+        },
+        "precipitation_amount": {
+          "type": "string",
+          "example": "mm"
+        },
+        "probability_of_precipitation": {
+          "type": "string",
+          "example": "%"
+        },
+        "cloud_area_fraction": {
+          "example": "%",
+          "type": "string"
+        },
+        "cloud_area_fraction_high": {
+          "type": "string",
+          "example": "%"
+        },
+        "ultraviolet_index_clear_sky_max": {
+          "example": "1",
+          "type": "string"
+        },
+        "dew_point_temperature": {
+          "type": "string",
+          "example": "C"
+        },
+        "precipitation_amount_min": {
+          "type": "string",
+          "example": "mm"
+        },
+        "cloud_area_fraction_low": {
+          "example": "%",
+          "type": "string"
+        },
+        "fog_area_fraction": {
+          "example": "%",
+          "type": "string"
+        },
+        "air_temperature_min": {
+          "example": "C",
+          "type": "string"
+        }
+      }
+    },
+    "PointGeometry": {
+      "title": "GeoJSON point type",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "Point"
+          ],
+          "type": "string"
+        },
+        "coordinates": {
+          "type": "array",
+          "minItems": 2,
+          "description": "[longitude, latitude, altitude]. All numbers in decimal.",
+          "items": {
+            "type": "number"
+          },
+          "example": [
+            60.5,
+            11.59,
+            1001
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ]
+    },
+    "ForecastTimeInstant": {
+      "description": "Weather parameters valid for a specific point in time.",
+      "type": "object",
+      "properties": {
+        "cloud_area_fraction_low": {
+          "type": "number",
+          "description": "Amount of sky covered by clouds at low elevation.",
+          "example": 95.2
+        },
+        "air_temperature": {
+          "example": 17.1,
+          "type": "number",
+          "description": "Air temperature"
+        },
+        "air_pressure_at_sea_level": {
+          "example": 1017.23,
+          "type": "number",
+          "description": "Air pressure at sea level"
+        },
+        "dew_point_temperature": {
+          "example": 8.1,
+          "description": "Dew point temperature at sea level",
+          "type": "number"
+        },
+        "wind_speed": {
+          "type": "number",
+          "description": "Speed of wind",
+          "example": 5.9
+        },
+        "cloud_area_fraction_medium": {
+          "type": "number",
+          "description": "Amount of sky covered by clouds at medium elevation.",
+          "example": 95.2
+        },
+        "cloud_area_fraction_high": {
+          "example": 95.2,
+          "description": "Amount of sky covered by clouds at high elevation.",
+          "type": "number"
+        },
+        "cloud_area_fraction": {
+          "example": 95.2,
+          "type": "number",
+          "description": "Amount of sky covered by clouds."
+        },
+        "relative_humidity": {
+          "description": "Amount of humidity in the air.",
+          "type": "number",
+          "example": 81.1
+        },
+        "wind_speed_of_gust": {
+          "description": "Speed of wind gust",
+          "type": "number",
+          "example": 15.9
+        },
+        "wind_from_direction": {
+          "type": "number",
+          "description": "The directon which moves towards",
+          "example": 121.3
+        },
+        "fog_area_fraction": {
+          "description": "Amount of area covered by fog.",
+          "type": "number",
+          "example": 95.2
+        }
+      }
+    }
+  },
+  "swagger": "2.0",
+  "basePath": "/weatherapi/locationforecast/3.0"
+}

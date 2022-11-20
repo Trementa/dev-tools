@@ -1,0 +1,61 @@
+﻿@using Microsoft.OpenApi.Any
+@using Microsoft.OpenApi.Models
+@using OpenApi.Generator.CSharp
+@using OpenApi.Generator.CSharp.SyntaxProviders
+@inherits CodeTemplate<(string Name, OpenApiSchema Type)>
+@{
+    DisableEncoding = true;
+
+    if(Model.Type.Type == "object")
+    {
+    await IncludeAsync("Summary", ("Summary", Model.Type.Description));
+    @: public partial class @(GetClassName(Model)) : JsonModel
+    @: {
+        foreach (var property in Model.Type.Properties)
+        {
+            if(property.Value.Type == "object" && property.Value.Reference == null)
+                // Inline type declaration
+                await IncludeAsync("ModelClass", (property.Key, property.Value));
+
+            await IncludeAsync("Summary", ("Summary", property.Value.Description));
+        @:[JsonPropertyName("@(property.Key)")]
+        @:public @(property.GetTypeName()) @(property.GetPropertyName()) { @(ShowGet(property)) @(ShowSet(property)) }
+        }
+    @:}
+    }
+    else if(Model.Type.Enum.Count > 0)
+    {
+        var enumType = GetEnumBaseType(Model.Type);
+        enumType = enumType == "int32" ? "" : $": {enumType}";
+    await IncludeAsync("Summary", ("Summary", Model.Type.Description));
+    @: public enum @(Model.Name) @(enumType)
+    @: {
+            foreach (var val in Model.Type.Enum)
+            {
+                if (val is OpenApiString stringValue)
+                {
+        @:[EnumMember(Value = "@stringValue.Value")]
+        @:@(stringValue.Value),
+                }
+                else if (val is OpenApiInteger integerValue)
+                {
+        @:[EnumMember(Value = "@integerValue.Value")]
+        @:NUMBER_@(integerValue.Value),
+                }
+                else
+                {
+        @: /// Unknown value @(val)
+                }
+            }
+    @: }
+    }
+}
+@functions
+{
+    public string ShowGet(KeyValuePair<string, OpenApiSchema> property) =>
+        Model.Type.WriteOnly || property.Value.WriteOnly ? "" : " get; ";
+
+    public string ShowSet(KeyValuePair<string, OpenApiSchema> property) =>
+        Model.Type.ReadOnly || property.Value.ReadOnly ? "" : " set; ";
+
+}
