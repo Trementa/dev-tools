@@ -293,39 +293,11 @@ function Get-WindowTitle {
 
 <#
 .SYNOPSIS
-	Clear solution cache after a repository change.
+	Clear solution cache.
 #>
-function ManageRepositoryChanges {
-	function Get-GitRepoInfo {
-		git remote show origin | 
-		foreach-object {
-			$repoName   = if ($_ -match "fetch url: .*\/(.*)") { $matches[1] }
-			$fetchUrl   = if ($_ -match "fetch url: (.*)") { $matches[1] }
-			$pushUrl    = if ($_ -match "push  url: (.*)") { $matches[1] }
-			$headBranch = if ($_ -match "head branch: (.*)") { $matches[1] }
-		}
-
-		$branchName = git symbolic-ref HEAD
-		$branchName = $branchName.substring($branchName.LastIndexOf("/") +1)
-		
-		@{ 
-			branchName = $branchName
-			fetchUrl   = $fetchUrl
-			headbranch = $headbranch
-			pushUrl    = $pushUrl
-			repoName   = $repoName
-		}	
-	}
-	
-	$gitSource = Get-GitRepoInfo
-	if ($null -ne $gitSource) {
-		# Did the branch change?
-		if ($gitSource -ne $script:gitSource) {
-			Write-Host "Clearing solution cache: git source changed from $($script:gitSource) to $($gitSource)"
-			Set-Variable -Name $script:CACHE_VARIABLE_NAME -Scope Global -Value @{}
-			$script:gitSource = $gitSource
-		}
-	}
+function Clr-Sln
+{
+	Set-Variable -Name $script:CACHE_VARIABLE_NAME -Scope Global -Value @{}
 }
 
 <#
@@ -783,9 +755,19 @@ function Get-GitStatus {
 	Format-Table -Wrap -AutoSize	
 }
 
+function Enable-dotnet-TabCompletion {
+	Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
+     param($commandName, $wordToComplete, $cursorPosition)
+         dotnet complete --position $cursorPosition "$wordToComplete" | ForEach-Object {
+            [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+         }
+	}
+}
+
 function Get-Commands {
 	[PsObject[]]$HelpArray = @()
 	$HelpArray += [pscustomobject]@{ Command = "Clean-Solution"  			; Shorthand = "cln"; Description = "Clean solution structure from artifacts" }
+	$HelpArray += [pscustomobject]@{ Command = "Clr-Sln"  			        ; Description = "Clean solutions cache for repository" }
 	$HelpArray += [pscustomobject]@{ Command = "DevEnv"          			; Description = "Open latest version of Visual Studio installed" }
 	$HelpArray += [pscustomobject]@{ Command = "Edit-Profile"    			; Description = "Open all profile (.ps1) scripts" }
 	$HelpArray += [pscustomobject]@{ Command = "Edit-Solution"   			; Shorthand = "sln"; Description = "List solution files below the current folder, open selected" }
@@ -1067,6 +1049,7 @@ function Invoke-Initialize {
 	Set-DefaultEditor
 	Set-Devenv
 	Alias
+	Enable-dotnet-TabCompletion
 }
 
 function Is-Admin
@@ -1091,7 +1074,7 @@ function Refresh-Env{ $env:PATH = [System.Environment]::GetEnvironmentVariable('
 
 function Initialize
 {
-	$script:moduleVersion = "3.1.1"
+	$script:moduleVersion = "3.1.2"
 	$script:isModule = $MyInvocation.MyCommand.Name.EndsWith('.psm1')
 	$script:CACHE_VARIABLE_NAME = "TrementaDevelopment_Cache"
 
