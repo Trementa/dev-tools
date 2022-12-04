@@ -8,10 +8,10 @@ namespace OpenApi.Generator.Test
         public static void Main()
         {
             Generator.Program.Main(
-               "-o", @"D:/temp/Drofus",
+               "-o", @"D:/temp/dRofus.Api.Proxy",
                "-s", @"https://api-no.drofus.com/swagger/v1/swagger.json",
-               "--GenNamespace", "Drofus.Api.Proxy",
-               "--SDKNamespace", "Drofus.WebLib",
+               "--GenNamespace", "dRofus.Api.Proxy",
+               "--SDKNamespace", "dRofus.WebLib",
                "-c", "yes",
                "-f", "yes",
                "-g", "yes",

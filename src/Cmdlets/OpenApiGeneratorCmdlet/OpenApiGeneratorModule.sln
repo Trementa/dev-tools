@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenApiGeneratorModule", "O
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomVSExtension", "CustomVSExtension\CustomVSExtension.csproj", "{B43411E4-55BD-403C-9D7F-7019E763B07C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenApiGeneratorModule.Tests", "OpenApiGeneratorModule.Tests\OpenApiGeneratorModule.Tests.csproj", "{DAD61F56-1AD2-4958-AF24-FC4EAC032782}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,18 @@ Global
 		{B43411E4-55BD-403C-9D7F-7019E763B07C}.Release|arm64.Build.0 = Release|arm64
 		{B43411E4-55BD-403C-9D7F-7019E763B07C}.Release|x86.ActiveCfg = Release|x86
 		{B43411E4-55BD-403C-9D7F-7019E763B07C}.Release|x86.Build.0 = Release|x86
+		{DAD61F56-1AD2-4958-AF24-FC4EAC032782}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAD61F56-1AD2-4958-AF24-FC4EAC032782}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAD61F56-1AD2-4958-AF24-FC4EAC032782}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{DAD61F56-1AD2-4958-AF24-FC4EAC032782}.Debug|arm64.Build.0 = Debug|Any CPU
+		{DAD61F56-1AD2-4958-AF24-FC4EAC032782}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DAD61F56-1AD2-4958-AF24-FC4EAC032782}.Debug|x86.Build.0 = Debug|Any CPU
+		{DAD61F56-1AD2-4958-AF24-FC4EAC032782}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAD61F56-1AD2-4958-AF24-FC4EAC032782}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAD61F56-1AD2-4958-AF24-FC4EAC032782}.Release|arm64.ActiveCfg = Release|Any CPU
+		{DAD61F56-1AD2-4958-AF24-FC4EAC032782}.Release|arm64.Build.0 = Release|Any CPU
+		{DAD61F56-1AD2-4958-AF24-FC4EAC032782}.Release|x86.ActiveCfg = Release|Any CPU
+		{DAD61F56-1AD2-4958-AF24-FC4EAC032782}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
