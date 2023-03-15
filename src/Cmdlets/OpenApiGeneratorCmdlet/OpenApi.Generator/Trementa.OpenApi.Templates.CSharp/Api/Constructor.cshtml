@@ -1,0 +1,11 @@
+﻿@using Microsoft.OpenApi.Models
+@using Trementa.OpenApi.Generator.CSharp
+@using Trementa.OpenApi.Generator.Generators.Models
+@model ApiTemplateModel
+@inherits ApiTemplatePage
+@{
+    DisableEncoding = true;
+    var apiClassName = GetClassName();
+}
+    public @(apiClassName)(IConnection connection, ILogger<@(apiClassName)> logger) : base(connection, logger)
+    {}

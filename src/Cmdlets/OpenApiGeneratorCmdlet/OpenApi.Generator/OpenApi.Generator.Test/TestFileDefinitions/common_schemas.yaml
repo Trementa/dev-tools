@@ -1,0 +1,1171 @@
+openapi: "3.0.0"
+components:
+    securitySchemes:
+        basicAuth:
+            description: supply username and password
+            type: http
+            scheme: basic
+            x-basicInfoFunc: api.auth.basic
+
+        bearerAuth:            # arbitrary name for the security scheme
+            description: every request must have a jwt attached
+            type: http
+            scheme: bearer
+            bearerFormat: JWT    # optional, arbitrary value for documentation purposes
+            x-bearerInfoFunc: api.auth.decode_token
+
+    schemas:
+        Email:
+            type: string
+
+        Timestamp:
+            description: Unix timestamp in milliseconds, should be >= 1262304000000 (2010-01-01 00:00:00)
+            type: integer
+            format: int64
+
+        PortfolioList:
+          type: array
+          items:
+            $ref: '#/Portfolio'
+
+        Portfolio:
+          required:
+            - id
+            - name
+          properties:
+            id:
+              $ref: '#/PortfolioId'
+            name:
+              $ref: '#/PortfolioName'
+
+        PortfolioId:
+          type: string
+
+        SubmissionPortfolioId:
+          type: string
+
+        PortfolioName:
+          type: string
+
+        PlantList:
+          type: array
+          items:
+            $ref: '#/SimplePlantWithComponents'
+        # TODO: At some point consider removing two price forecast fields -> replace with uuid
+        SimplePlantWithComponents:
+          required:
+            - id
+            - name
+            - timezone
+          properties:
+            id:
+              $ref: '#/PlantId'
+            name:
+              $ref: '#/PlantName'
+            timezone:
+              $ref: '#/TimeZone'
+            price_forecast_source_uuid:
+              $ref: '#/PriceForecastSourceUuid'
+            turbines:
+              type: array
+              items:
+                $ref: '#/SimpleTurbine'
+            reservoirs:
+              type: array
+              items:
+                $ref: '#/SimpleReservoir'
+            rivers:
+              type: array
+              items:
+                $ref: '#/SimpleRiver'
+            gates:
+              type: array
+              items:
+                $ref: '#/SimpleGate'
+
+        SimpleTurbine:
+          required:
+            - id
+            - name
+          properties:
+            id:
+              $ref: '#/TurbineId'
+            name:
+              $ref: '#/UnitName'
+
+        SimpleReservoir:
+          required:
+            - id
+            - name
+          properties:
+            id:
+              $ref: '#/ReservoirId'
+            name:
+              $ref: '#/UnitName'
+
+        SimpleRiver:
+          required:
+            - id
+            - name
+          properties:
+            id:
+              $ref: '#/RiverId'
+            name:
+              $ref: '#/UnitName'
+
+        SimpleGate:
+          required:
+            - id
+            - name
+          properties:
+            id:
+              $ref: '#/GateId'
+            name:
+              $ref: '#/UnitName'
+
+        Info:
+          type: string
+
+        # Customer properties
+        CustomerId:
+          type: string
+
+        CustomerName:
+          type: string
+
+        SimpleCustomer:
+          required:
+            - id
+            - name
+          properties:
+            id:
+              $ref: '#/CustomerId'
+            name:
+              $ref: '#/CustomerName'
+
+        SimpleCustomerList:
+          type: array
+          items:
+            $ref: '#/SimpleCustomer'
+
+        # Hydrobody properties
+        HydrobodyName:
+          type: string
+
+        HydrobodyType:
+          type: string
+
+        HydrobodyId:
+          type: string
+
+        Longitude:
+          type: number
+          format: float
+
+        Latitude:
+          type: number
+          format: float
+
+        MaximumSpillThroughput:
+          type: number
+          format: float
+
+        WeatherUrl:
+          type: string
+
+        ReservoirLevelMin:
+          type: number
+          format: float
+
+        ReservoirLevelMax:
+          type: number
+          format: float
+
+        ReservoirLevelMinMasl:
+          type: number
+          format: float
+
+        ReservoirLevelMaxMasl:
+          type: number
+          format: float
+
+        SpillwayLevelMasl:
+          type: number
+          format: float
+
+        SpillwayWidthM:
+          type: number
+          format: float
+
+        SpillwayShapeParameter:
+          type: number
+          format: float
+
+        CatchmentAreaKm2:
+          type: number
+          format: float
+
+        CatchmentElevationMasl:
+          type: number
+          format: float
+
+        ChannelMaxThroughputRate:
+          type: number
+          format: float
+
+        ChannelFlowTime:
+          type: number
+          format: float
+
+        InflowGateControl:
+          type: boolean
+
+        SimpleHydrobody:
+          required:
+            - name
+            - type
+          properties:
+            name:
+              $ref: '#/HydrobodyName'
+            type:
+              $ref: '#/HydrobodyType'
+            id:
+              $ref: '#/HydrobodyId'
+            redirect_id:
+              $ref: '#/HydrobodyId'
+
+        SimpleHydrobodyList:
+          type: array
+          items:
+            $ref: '#/SimpleHydrobody'
+
+        HydrobodyReservoir:
+          required:
+            - reservoir_level_min_masl
+            - reservoir_level_max_masl
+            - gps_latitude_decimal
+            - gps_longitude_decimal
+            - spillway_level_masl
+            - spillway_width_m
+            - spillway_shape_parameter
+            - catchment_area_km2
+            - catchment_elevation_masl
+          properties:
+            reservoir_level_min_masl:
+              $ref: '#/ReservoirLevelMinMasl'
+            reservoir_level_max_masl:
+              $ref: '#/ReservoirLevelMaxMasl'
+            gps_latitude_decimal:
+              $ref: '#/Latitude'
+            gps_longitude_decimal:
+              $ref: '#/Longitude'
+            spillway_level_masl:
+              nullable: true
+              allOf:
+                - $ref: '#/SpillwayLevelMasl'
+            spillway_width_m:
+              nullable: true
+              allOf:
+                - $ref: '#/SpillwayWidthM'
+            spillway_shape_parameter:
+              nullable: true
+              allOf:
+                - $ref: '#/SpillwayShapeParameter'
+            catchment_area_km2:
+              nullable: true
+              allOf:
+                - $ref: '#/CatchmentAreaKm2'
+            catchment_elevation_masl:
+              nullable: true
+              allOf:
+                - $ref: '#/CatchmentElevationMasl'
+
+        HydrobodyRiver:
+          required:
+            - gps_latitude_decimal
+            - gps_longitude_decimal
+          properties:
+            gps_latitude_decimal:
+              $ref: '#/Latitude'
+            gps_longitude_decimal:
+              $ref: '#/Longitude'
+
+        TypeSpecificAttributes:
+          anyOf:
+            - $ref: '#/HydrobodyReservoir'
+            - $ref: '#/HydrobodyRiver'
+
+        CompleteHydrobody:
+          allOf:
+            - $ref: '#/SimpleHydrobody'
+            - $ref: '#/HydrobodyAttributes'
+
+        HydrobodyUpdate:
+          allOf:
+            - $ref: '#/HydrobodyAttributes'
+            - type: object
+              required:
+                - name
+              properties:
+                name:
+                  $ref: '#/HydrobodyName'
+
+        HydrobodyAttributes:
+          required:
+            - maximum_spill_throughput
+            - weather_url
+            - type_specific_attributes
+          properties:
+            maximum_spill_throughput:
+              nullable: true
+              allOf:
+                - $ref: '#/MaximumSpillThroughput'
+            weather_url:
+              nullable: true
+              allOf:
+                - $ref: '#/WeatherUrl'
+            type_specific_attributes:
+              nullable: true
+              allOf:
+                - $ref: '#/TypeSpecificAttributes'
+
+        ReservoirLevelMasl:
+          type: number
+          format: float
+
+        ReservoirContentHm3:
+          type: number
+          format: float
+
+        LevelToContent:
+          required:
+            - level
+            - content
+          properties:
+            level:
+              $ref: '#/ReservoirLevelMasl'
+            content:
+              $ref: '#/ReservoirContentHm3'
+
+        LevelToContentList:
+          type: array
+          items:
+            $ref: '#/LevelToContent'
+
+        # Controlunit properties
+        ControlUnitType:
+          type: string
+
+        ControlUnitId:
+          type: string
+
+        ControlUnitName:
+          type: string
+
+        PMin:
+          type: number
+          format: float
+
+        PMax:
+          type: number
+          format: float
+
+        QMin:
+          type: number
+          format: float
+
+        QMax:
+          type: number
+          format: float
+
+        ControlStatus:
+          type: string
+          enum:
+            - PASSIVE
+            - ACTIVE
+            - LEVEL_REGULATE
+            - ACTIVE_LEVEL_REGULATE
+
+        GateOpeningUnitIsCm:
+          type: boolean
+
+        SimpleControlUnit:
+          required:
+            - feeds_from
+            - spills_to
+            - type
+            - name
+          properties:
+            feeds_from:
+              $ref: '#/HydrobodyName'
+            spills_to:
+              $ref: '#/HydrobodyName'
+            type:
+              $ref: '#/ControlUnitType'
+            name:
+              nullable: true
+              allOf:
+                - $ref: '#/ControlUnitName'
+            id:
+              $ref: '#/ControlUnitId'
+            redirect_id:
+              $ref: '#/ControlUnitId'
+
+        SimpleControlUnitList:
+          type: array
+          items:
+            $ref: '#/SimpleControlUnit'
+
+        CompleteControlUnit:
+          allOf:
+            - $ref: '#/SimpleControlUnit'
+            - type: object
+              required:
+                - id
+                - p_min
+                - p_max
+                - q_min
+                - q_max
+                - control_status
+                - gate_opening_unit_is_cm
+              properties:
+                id:
+                  $ref: '#/ControlUnitId'
+                p_min:
+                  nullable: true
+                  allOf:
+                    - $ref: '#/PMin'
+                p_max:
+                  nullable: true
+                  allOf:
+                    - $ref: '#/PMax'
+                q_min:
+                  nullable: true
+                  allOf:
+                    - $ref: '#/QMin'
+                q_max:
+                  nullable: true
+                  allOf:
+                    - $ref: '#/QMax'
+                control_status:
+                  nullable: true
+                  allOf:
+                    - $ref: '#/ControlStatus'
+                gate_opening_unit_is_cm:
+                  nullable: true
+                  allOf:
+                    - $ref: '#/GateOpeningUnitIsCm'
+
+        ControlUnitUpdate:
+          required:
+            - p_min
+            - p_max
+            - q_min
+            - q_max
+            - control_status
+            - gate_opening_unit_is_cm
+            - feeds_from
+            - spills_to
+            - name
+          properties:
+            p_min:
+              nullable: true
+              allOf:
+                - $ref: '#/PMin'
+            p_max:
+              nullable: true
+              allOf:
+                - $ref: '#/PMax'
+            q_min:
+              nullable: true
+              allOf:
+                - $ref: '#/QMin'
+            q_max:
+              nullable: true
+              allOf:
+                - $ref: '#/QMax'
+            control_status:
+              nullable: true
+              allOf:
+                - $ref: '#/ControlStatus'
+            gate_opening_unit_is_cm:
+              nullable: true
+              allOf:
+                - $ref: '#/GateOpeningUnitIsCm'
+            feeds_from:
+              nullable: true
+              allOf:
+                - $ref: '#/HydrobodyName'
+            spills_to:
+              nullable: true
+              allOf:
+                - $ref: '#/HydrobodyName'
+            name:
+              nullable: true
+              allOf:
+                - $ref: '#/ControlUnitName'
+
+        ThroughputCumec:
+          type: number
+          format: float
+
+        GateOpening:
+          type: number
+          format: float
+
+        ThroughputRatio:
+          required:
+            - throughput_cumec
+            - gate_opening
+          properties:
+            reservoir_level:
+              $ref: '#/ReservoirLevelMasl'
+            throughput_cumec:
+              $ref: '#/ThroughputCumec'
+            gate_opening:
+              $ref: '#/GateOpening'
+
+        ThroughputRatioList:
+          type: array
+          items:
+            $ref: '#/ThroughputRatio'
+
+        FlowRateM3Sec:
+          type: number
+          format: float
+
+        GenerationMw:
+          type: number
+          format: float
+
+        FlowToPower:
+          required:
+            - flow_rate
+            - generation
+          properties:
+            flow_rate:
+              $ref: '#/FlowRateM3Sec'
+            generation:
+              $ref: '#/GenerationMw'
+            reservoir_level:
+              allOf:
+                - $ref: '#/ReservoirLevelMasl'
+
+        FlowToPowerList:
+          type: array
+          items:
+            $ref: '#/FlowToPower'
+
+        MarketId:
+          type: string
+
+        PriceForecastSourceId:
+          type: string
+
+        PriceForecastSourceUuid:
+          type: string
+
+        PriceForecastSourcePortfolioId:
+          type: string
+
+        PriceForecastSourceDisplayName:
+          type: string
+
+        PriceForecastQuoteValue:
+          type: number
+          format: float
+
+        Uuid:
+          type: string
+
+        TurbineWaterValues:
+          type: array
+          items:
+            required:
+              - turbine_id
+              - timeseries
+            properties:
+              turbine_id:
+                $ref: '#/TurbineId'
+              timeseries:
+                $ref: '#/WaterValueTimeseriesReturnType'
+
+        WaterValueSubmissions:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/WaterValueSubmission'
+
+        WaterValueSubmission:
+          required:
+            - turbine_id
+            - data_observation_timestamp
+            - planning_horizon_timestamp
+            - type
+            - source
+            - market_type
+            - currency
+            - timeseries
+          properties:
+            turbine_id:
+              $ref: '#/TurbineId'
+            data_observation_timestamp:
+              $ref: '#/Timestamp'
+            planning_horizon_timestamp:
+              $ref: '#/Timestamp'
+            type:
+              type: string
+              enum:
+                - constrained
+                - unconstrained
+            source:
+              type: string
+              enum:
+                - day-ahead
+                - intraday
+                - mid-term
+            market_type:
+              type: string
+              enum:
+                - intraday
+                - day-ahead
+            currency:
+              $ref: '#/CurrencyShortName'
+            additional_information:
+              type: string
+            timeseries:
+              $ref: '#/WaterValueTimeseriesSubmissionType'
+
+        WaterValueTimeseriesSubmissionType:
+          type: array
+          minItems: 2
+          uniqueItems: true
+          items:
+            required:
+              - timestamp
+              - value
+            properties:
+              timestamp:
+                $ref: '#/Timestamp'
+              value:
+                $ref: '#/WaterValue'
+
+        WaterValueTimeseriesReturnType:
+          type: array
+          uniqueItems: true
+          items:
+            required:
+              - timestamp
+              - value
+            properties:
+              timestamp:
+                $ref: '#/Timestamp'
+              value:
+                $ref: '#/WaterValue'
+
+
+        WaterValue:
+          type: number
+          format: float
+
+        PriceForecast:
+          required:
+            - timestamp
+            - value
+          properties:
+            timestamp:
+              $ref: '#/Timestamp'
+            value:
+              $ref: '#/PriceForecastQuoteValue'
+
+
+        PriceForecastTimeseries:
+          type: array
+          items:
+            $ref: '#/PriceForecast'
+
+        PriceForecastSubmissionTimeseries:
+          type: array
+          minItems: 2
+          items:
+            $ref: '#/PriceForecast'
+
+        # Plant properties
+        PlantId:
+          type: string
+
+        # TODO: When all PlantIds are UrlSafe, this should be merged with PlantId
+        UrlSafePlantId:
+          type: string
+          pattern: '^[a-zA-Z0-9._~-]+$'
+
+        PlantName:
+          type: string
+
+        PlantShortName:
+          type: string
+
+        Country:
+          type: string
+
+        PriceRegionId:
+          type: string
+
+        PriceRegionName:
+          type: string
+
+        PlantIsActive:
+          type: boolean
+
+        TurbineId:
+          type: string
+
+        UnitName:
+          type: string
+
+        ReservoirId:
+          type: string
+
+        RiverId:
+          type: string
+
+        GateId:
+          type: string
+
+        TimeZone:
+          type: string
+          enum:
+            - Europe/Istanbul
+            - Europe/Oslo
+            - Europe/Sarajevo
+            - Europe/London
+            - Europe/Helsinki
+            - Europe/Stockholm
+            - Europe/Rome
+            - Europe/Zurich
+            - Europe/Belgrade
+            - Europe/Vienna
+
+        TimeZoneList:
+          type: array
+          items:
+            $ref: '#/TimeZone'
+
+        GranularityMinutes:
+          type: integer
+          format: int64
+          enum:
+            - 10
+            - 15
+            - 30
+            - 60
+
+        PriceRegion:
+          required:
+            - id
+            - name
+          properties:
+            id:
+              $ref: '#/PriceRegionId'
+            name:
+              $ref: '#/PriceRegionName'
+
+        SimplePlant:
+          required:
+            - id
+            - name
+            - active
+          properties:
+            id:
+              $ref: '#/PlantId'
+            name:
+              $ref: '#/PlantName'
+            active:
+              $ref: '#/PlantIsActive'
+
+        PriceForecastSource:
+          required:
+            - market_id
+            - portfolio_id
+            - external_id
+            - display_name
+          properties:
+            market_id:
+              $ref: '#/MarketId'
+            portfolio_id:
+              $ref: '#/PortfolioId'
+            external_id:
+              $ref: '#/PriceForecastSourceId'
+            display_name:
+              $ref: '#/PriceForecastSourceDisplayName'
+
+        IdentifiedPriceForecastSource:
+          required:
+            - market_id
+            - portfolio_id
+            - external_id
+            - display_name
+            - uuid
+          properties:
+            market_id:
+              $ref: '#/MarketId'
+            portfolio_id:
+              $ref: '#/PortfolioId'
+            external_id:
+              $ref: '#/PriceForecastSourceId'
+            display_name:
+              $ref: '#/PriceForecastSourceDisplayName'
+            uuid:
+              $ref: 'common_schemas.yaml#/Uuid'
+
+
+        SimplePlantList:
+          type: array
+          items:
+            $ref: '#/SimplePlant'
+
+        PriceForecastSourceList:
+          type: array
+          items:
+            $ref: '#/PriceForecastSource'
+
+        IdentifiedPriceForecastSourceList:
+          type: array
+          items:
+            $ref: '#/IdentifiedPriceForecastSource'
+
+        SimplePlantWithInternalID:
+          required:
+            - external_id
+            - internal_id
+            - name
+          properties:
+            external_id:
+              $ref: '#/PlantId'
+            internal_id:
+              $ref: '#/PlantId'
+            name:
+              nullable: false
+              allOf:
+                - $ref: '#/PlantName'
+
+        SimplePlantWithInternalIDList:
+          type: array
+          items:
+            $ref: '#/SimplePlantWithInternalID'
+
+        PriceRegionList:
+          type: array
+          items:
+            $ref: '#/PriceRegion'
+
+        PlantSubType:
+          type: string
+          enum:
+            - Run-of-River
+            - Pondage
+            - Storage
+            - Cascade
+        # TODO: Consider replacing two price forecast fields with uuid in the future
+        Plant:
+          required:
+            - customer_id
+            - name
+            - short_name
+            - country
+            - price_region
+            - sub_type
+            - active
+            - local_time_zone
+            - market_timezone
+            - grid_granularity_minutes
+            - price_forecast_source_id
+            - price_forecast_source_portfolio_id
+          properties:
+            customer_id:
+              $ref: '#/CustomerId'
+            name:
+              $ref: '#/PlantName'
+            short_name:
+              $ref: '#/PlantShortName'
+            country:
+              $ref: '#/Country'
+            price_region:
+              $ref: '#/PriceRegionId'
+            sub_type:
+              $ref: '#/PlantSubType'
+            customer_name:
+              $ref: '#/CustomerName'
+            active:
+              $ref: '#/PlantIsActive'
+            local_time_zone:
+              $ref: '#/TimeZone'
+            market_timezone:
+              $ref: '#/TimeZone'
+            grid_granularity_minutes:
+              $ref: '#/GranularityMinutes'
+            price_forecast_source_id:
+              $ref: '#/PriceForecastSourceId'
+            price_forecast_source_portfolio_id:
+              $ref: '#/PriceForecastSourcePortfolioId'
+
+        PlantUpdate:
+          required:
+            - name
+            - country
+            - price_region
+            - active
+            - local_time_zone
+            - market_timezone
+            - grid_granularity_minutes
+          properties:
+            name:
+              $ref: '#/PlantName'
+            country:
+              $ref: '#/Country'
+            price_region:
+              $ref: '#/PriceRegionId'
+            active:
+              $ref: '#/PlantIsActive'
+            local_time_zone:
+              $ref: '#/TimeZone'
+            market_timezone:
+              $ref: '#/TimeZone'
+            grid_granularity_minutes:
+              $ref: '#/GranularityMinutes'
+            price_forecast_source_id:
+              nullable: true
+              allOf:
+                - $ref: '#/PriceForecastSourceId'
+
+        Topology:
+          required:
+            - hydrobodies
+            - control_units
+          properties:
+            hydrobodies:
+              $ref: '#/SimpleHydrobodyList'
+            control_units:
+              $ref: '#/SimpleControlUnitList'
+
+        BasicPlantArrangement:
+          allOf:
+            - $ref: '#/Plant'
+            - $ref: '#/Topology'
+
+        MarketObservationTimestamp:
+          $ref: '#/Timestamp'
+
+        CreationTimestamp:
+          $ref: '#/Timestamp'
+
+        PriceForecastSubmission:
+          required:
+            - market_observation_timestamp
+            - timeseries
+          properties:
+            market_observation_timestamp:
+              $ref: '#/MarketObservationTimestamp'
+            timeseries:
+              $ref: '#/PriceForecastSubmissionTimeseries'
+            creation_timestamp:
+              $ref: '#/CreationTimestamp'
+
+        Currency:
+          required:
+            - currency
+          properties:
+            currency:
+              $ref: '#/CurrencyProperties'
+
+        CurrencyProperties:
+          required:
+            - shortName
+            - symbol
+            - description
+          properties:
+            shortName:
+              $ref: '#/CurrencyShortName'
+            symbol:
+              $ref: '#/CurrencySymbol'
+            description:
+              $ref: '#/CurrencyDescription'
+
+        CurrencyShortName:
+          type: string
+
+        CurrencySymbol:
+          type: string
+
+        CurrencyDescription:
+          type: string
+
+        Price:
+          type: number
+
+        # Upload properties
+        IsUTC:
+          type: boolean
+
+        CSVFile:
+          type: string
+          format: base64
+
+        FileId:
+          type: number
+
+        HandlingMessage:
+          type: string
+
+        HandlingName:
+          type: string
+
+        HandlingOption:
+          type: string
+          enum:
+            - discard_exceeding_limits
+            - ignore_missing_data
+            - forward_fill_missing_data
+            - overwrite_existing_data
+
+        HandlingOptions:
+          type: array
+          items:
+            $ref: '#/HandlingOption'
+
+        HandlingOptionName:
+          type: string
+          enum:
+            - Discard Exceeding Limits
+            - Ignore Missing Data
+            - Forward Fill Missing Data
+            - Overwrite Existing Data
+
+        NamedHandlingOption:
+          required:
+            - name
+            - option
+          properties:
+            name:
+              $ref: '#/HandlingOptionName'
+            option:
+              $ref: '#/HandlingOption'
+
+        NamedHandlingOptions:
+          type: array
+          items:
+            $ref: '#/NamedHandlingOption'
+
+        HandlingOffer:
+          required:
+            - message
+            - name
+            - options
+          properties:
+            message:
+              $ref: '#/HandlingMessage'
+            name:
+              $ref: '#/HandlingName'
+            options:
+              $ref: '#/NamedHandlingOptions'
+
+        HandlingOffers:
+          type: array
+          items:
+            $ref: '#/HandlingOffer'
+
+        Date:
+          type: string
+          format: date
+
+        ComponentId:
+          type: string
+
+        ComponentName:
+          type: string
+
+        ComponentType:
+          type: string
+          enum:
+            - Reservoir
+            - Turbine
+            - Gate
+
+        Component:
+          required:
+            - id
+            - name
+            - type
+          properties:
+            id:
+              $ref: '#/ComponentId'
+            name:
+              $ref: '#/ComponentName'
+            type:
+              $ref: '#/ComponentType'
+
+        ComponentList:
+          type: array
+          items:
+            $ref: '#/Component'
+
+        InExTernalComponent:
+          required:
+            - external_id
+            - internal_id
+            - name
+            - type
+          properties:
+            external_id:
+              $ref: '#/ComponentId'
+            internal_id:
+              $ref: '#/ComponentId'
+            name:
+              $ref: '#/ComponentName'
+            type:
+              $ref: '#/ComponentType'
+
+        InExTernalComponentList:
+          type: array
+          items:
+            $ref: '#/InExTernalComponent'
+
+        TemporalGranularity:
+          type: string
+          enum:
+            - half-hour
+            - hour
+            - day
+            - week
+            - month
+            - quarter
+            - year
+
+        IntervalRounding:
+          type: string
+          enum:
+            - inner
+            - outer
+
+        AppContext:
+          required:
+            - version
+          properties:
+            version:
+              type: string
+
+        HttpResponse:
+            NotFound:
+              description: Unsupported parameter in the request.
+
+            BadRequest:
+              description: Invalid parameter value in the request
+
+            UnauthorizedError:
+              description: Access token is missing or invalid
+
+            ForbiddenError:
+              description: Permission denied
+
+            ConflictError:
+              description: Operation is not possible because of the current state of the target

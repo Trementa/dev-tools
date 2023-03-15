@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="template.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="**\*.cshtml">
+			<LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="Api\Api.cshtml" />
+	  <None Remove="Api\Constructor.cshtml" />
+	  <None Remove="Api\Operations.cshtml" />
+	  <None Remove="Api\Servers.cshtml" />
+	  <None Remove="LicenseHeader.lic" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="LicenseHeader.lic" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Trementa.OpenApi.Generator\Trementa.OpenApi.Generator.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Update="Api\Constructor.cshtml">
+	    <LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+	  </EmbeddedResource>
+	  <EmbeddedResource Update="Api\Servers.cshtml">
+	    <LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+	  </EmbeddedResource>
+	  <EmbeddedResource Update="Api\Operations.cshtml">
+	    <LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+	  </EmbeddedResource>
+	  <EmbeddedResource Update="Api\Api.cshtml">
+	    <LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+	  </EmbeddedResource>
+	</ItemGroup>
+
+</Project>

@@ -1,39 +1,28 @@
 ﻿using System;
 using System.IO;
 
-namespace OpenApi.Generator.Test
+namespace OpenApi.Generator.Test;
+public static class Program
 {
-    public static class Program
+    public static void Main()
     {
-        public static void Main()
-        {
-            Generator.Program.Main(
-               "-o", @"D:/temp/dRofus.Api.Proxy",
-               "-s", @"https://api-no.drofus.com/swagger/v1/swagger.json",
-               "--GenNamespace", "dRofus.Api.Proxy",
-               "--SDKNamespace", "dRofus.WebLib",
-               "-c", "yes",
-               "-f", "yes",
-               "-g", "yes",
-               "-l", "C#",
-               "--outputType", "Api|Model|SDK",
-               "--excludeAPIParams", "db, pr",
-               "--useHTTPverbs");
-        }
+        var projectContainer = new ProjectContainer("t", "D:\temp");
 
-        static string GetProjectPath(string projectName, DirectoryInfo dirInfo)
-        {
-            if (dirInfo == null)
-                throw new Exception($"{projectName} not found");
-            var directories = dirInfo.GetDirectories(projectName, SearchOption.TopDirectoryOnly);
-            if (directories.Length == 1)
-            {
-                var files = directories[0].GetFiles($"{projectName}.csproj", SearchOption.TopDirectoryOnly);
-                if (files.Length == 1)
-                    return files[0].DirectoryName;
-            }
-
-            return GetProjectPath(projectName, dirInfo.Parent);
-        }
+        Trementa.OpenApi.Generator.Program.Main(
+           "-o", projectContainer.ProjectPath,
+           //"-o", @"D:/temp/HydroGrid",
+           //"-s", @"D:\Source\Trementa\dev-tools\src\Cmdlets\OpenApiGeneratorCmdlet\OpenApi.Generator\OpenApi.Generator.Test\TestFileDefinitions\HYDROGRID-Insight-API_OpenAPI-MERGED_EXTERNALS.yaml",
+           //"-s", @"D:\Source\Trementa\dev-tools\src\Cmdlets\OpenApiGeneratorCmdlet\OpenApi.Generator\OpenApi.Generator.Test\TestFileDefinitions\swaggerTripletex20.json",
+           "-s", @"https://api-spec.hydrogrid.eu/swagger.yaml",
+           "-ta", @"Trementa.OpenApi.Templates.CSharp.dll",
+           "--GenNamespace", "HydroGrid.Proxy",
+           "--SDKNamespace", "Trementa.WebLib",
+           "-c", "yes",
+           "-f", "yes",
+           "-g", "yes",
+           "-l", "C#",
+           "--outputType", "Api|Model|SDK",
+           //"--excludeAPIParams", "db, pr",
+           "--useHTTPverbs");
     }
 }

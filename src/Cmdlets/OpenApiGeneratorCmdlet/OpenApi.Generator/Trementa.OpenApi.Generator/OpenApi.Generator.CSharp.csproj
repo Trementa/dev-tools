@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<LangVersion>11</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="Properties\**" />
+		<Compile Remove="temp\**" />
+		<EmbeddedResource Remove="Properties\**" />
+		<EmbeddedResource Remove="temp\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="Properties\**" />
+		<None Remove="temp\**" />
+		<None Remove="CodeProvider\" />
+		<None Remove="CodeProvider\SyntaxProviders\" />
+		<None Remove="CSharp\Utility\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Razor" Version="2.2.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="7.0.3" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Razor.Language" Version="6.0.14" />
+		<PackageReference Include="Microsoft.AspNetCore.Razor.Runtime" Version="2.2.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
+		<!--<PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />-->
+		<PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.1" />
+		<PackageReference Include="RazorLight" Version="2.3.1" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="CSharp\" />
+	  <Folder Include="CSharp\SyntaxProviders\" />
+	  <Folder Include="CSharp\Utility\" />
+	</ItemGroup>
+</Project>

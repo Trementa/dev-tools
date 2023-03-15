@@ -63,11 +63,20 @@ choco install spotify -y
 choco install paint.net -y
 choco install powershell-core -y
 choco install microsoft-windows-terminal -y
-choco install wsl2 -y
-choco install wsl2 -y
-choco install wsl2 -y
-choco install wsl2 -y
-choco install wsl2 -y
+
+irm get.scoop.sh -outfile 'install.ps1'
+iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
+scoop install winget
+scoop bucket add extras
+scoop install windows-terminal
+
+
+Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
+     param($commandName, $wordToComplete, $cursorPosition)
+         dotnet complete --position $cursorPosition "$wordToComplete" | ForEach-Object {
+            [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+         }
+}
 
 reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v HideFileExt /t REG_DWORD /d 0 /f
 show-windowsdeveloperlicenseregistration

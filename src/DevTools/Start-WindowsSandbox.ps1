@@ -1,5 +1,4 @@
-https://jdhitsolutions.com/blog/powershell/7621/doing-more-with-windows-sandbox/
-
+# https://jdhitsolutions.com/blog/powershell/7621/doing-more-with-windows-sandbox/
 
 Function Start-WindowsSandbox {
     [cmdletbinding(DefaultParameterSetName = "config")]
@@ -24,7 +23,7 @@ Function Start-WindowsSandbox {
     }
 
     Write-Verbose "Ending $($myinvocation.mycommand)"
-}    
+}
 
 Startup
 # REM sandbox-setup.cmd

@@ -163,27 +163,18 @@ function Apply-Configuration
 {
 	$cd = get-location
 	try {
-		function Get-ObjectMembers {
-			[CmdletBinding()]
-			Param(
-				[Parameter(Mandatory = $True, ValueFromPipeline = $True)]
-				[PSCustomObject]$obj
-			)
-			$obj | Get-Member -MemberType NoteProperty | ForEach-Object {
-				$key = $_.Name
-				[PSCustomObject]@{Key = $key; Value = $obj."$key" }
-			}
-		}
-
 		function Get-DevEnvConfig {
 			param([string] $cd)
 			$labelDirMapping = @()
 			$envJson = Join-Path $cd 'devenv.config'
 			if (Test-Path $envJson) {
 				push-location $cd
-					$json = Get-Content $envJson | ConvertFrom-Json
-					if($json.visualstudio) { $vsversion = $json.visualstudio }
-					($json.folders) | Get-ObjectMembers | ForEach-Object {
+					$json = Get-Content $envJson | ConvertFrom-Json -AsHashtable
+					if($json.visualstudio) 
+					{
+					$vsversion = $json.visualstudio }
+
+					$json.folders | ForEach-Object {
 						if($_.Value){
 							if($_.Value.StartsWith("*"))
 							{
@@ -535,7 +526,7 @@ function Edit-Profile {
 function Start-Docker {
 	Get-Process 'com.docker.proxy' >$null 2>&1
 	if (-Not $?) {
-		Docker-Desktop
+		Start-Docker
 		"Starting Docker"
 		do {
 			Write-Host "." -NoNewLine

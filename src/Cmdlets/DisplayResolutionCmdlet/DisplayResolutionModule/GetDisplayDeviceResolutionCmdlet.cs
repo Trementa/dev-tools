@@ -7,10 +7,10 @@ using static Managers.PInvoke.User_32;
 [Cmdlet(VerbsCommon.Get, nameof(DisplayDeviceResolution))]
 [OutputType(typeof(DisplayDeviceResolution), ParameterSetName = new[] { nameof(Current) })]
 [OutputType(typeof(IEnumerable<DisplayDeviceResolution>), ParameterSetName = new[] { nameof(List), nameof(History) })]
-public class GetDeviceResolutionCmdlet : DeviceResolutionCmdlet
+public class GetDisplayDeviceResolutionCmdlet : DeviceResolutionCmdlet
 {
     readonly ScreenResolutionManager ScreenResolutionManager;
-    public GetDeviceResolutionCmdlet() 
+    public GetDisplayDeviceResolutionCmdlet() 
         => ScreenResolutionManager = new ScreenResolutionManager(this);
 
     [Parameter(Mandatory = true, ParameterSetName = nameof(Current))]

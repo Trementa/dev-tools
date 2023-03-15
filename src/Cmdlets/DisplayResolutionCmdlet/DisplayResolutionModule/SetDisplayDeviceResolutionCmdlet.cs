@@ -6,12 +6,12 @@ using static Managers.PInvoke.User_32;
 
 [Cmdlet(VerbsCommon.Set, nameof(DisplayDeviceResolution))]
 [OutputType(typeof(void))]
-public class SetDeviceResolutionCmdlet : DeviceResolutionCmdlet
+public class SetDisplayDeviceResolutionCmdlet : DeviceResolutionCmdlet
 {
     readonly ScreenResolutionManager ScreenResolutionManager;
     readonly string Push = nameof(Push);
 
-    public SetDeviceResolutionCmdlet()
+    public SetDisplayDeviceResolutionCmdlet()
         => ScreenResolutionManager = new ScreenResolutionManager(this);
 
     [Parameter(Mandatory = true, Position = 0, ParameterSetName = nameof(Push))]
