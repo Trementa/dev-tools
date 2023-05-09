@@ -1,4 +1,4 @@
-<#
+﻿<#
 .Synopsis
 	Custom general profile with added functionality for development.
 .Description
@@ -129,11 +129,11 @@ function Select-Directory {
 	$global:counter = 1;
 	$cd = (Get-Location).Path.Length
 	$directories = @(Get-ChildItem -Recurse -Directory |
-		lkjl			 where {$_.FullName -match $path} |
+					 where {$_.FullName -match $path} |
 					 Select-Object @{Name = "Id"; Expression = { $global:counter; $global:counter++ } }, Name, FullName, @{Name = "Path"; Expression = { $_.FullName.SubString($cd) } })
 
 	if ($directories.Count -eq 0) {
-		"No such path $($path)"
+		"No matching path: $($path)"
 		return
 	}
 
@@ -165,50 +165,49 @@ function Apply-Configuration
 	try {
 		function Get-DevEnvConfig {
 			param([string] $cd)
-			$labelDirMapping = @()
+			$labelDirMapping = @{}
 			$envJson = Join-Path $cd 'devenv.config'
 			if (Test-Path $envJson) {
 				push-location $cd
-					$json = Get-Content $envJson | ConvertFrom-Json -AsHashtable
-					if($json.visualstudio) 
+				$json = Get-Content $envJson | ConvertFrom-Json -AsHashtable
+				$json.folders.Keys | ForEach-Object {
+					$value = $json.folders[$_]
+					if($value.StartsWith("*") -or $value.StartsWith("#")) {
+						$labelDirMapping += @{$_ = $value }
+					}
+					else
 					{
-					$vsversion = $json.visualstudio }
-
-					$json.folders | ForEach-Object {
-						if($_.Value){
-							if($_.Value.StartsWith("*"))
-							{
-								$labelDirMapping += @{$_.Key = $_.Value }
-							}
-							else
-							{
-								$absPath = Resolve-Path $_.Value
-								if (Test-Path $absPath) {
-									$labelDirMapping += @{$_.Key = $absPath.Path }
-								}
-							}
+						$absPath = Resolve-Path $value -ErrorAction ignore
+						if (Test-Path $absPath -ErrorAction ignore) {
+							$labelDirMapping += @{$_ = $absPath.Path }
 						}
 					}
+				}
 				pop-location
 			}
-			return @($labelDirMapping, $vsversion)
+			return $labelDirMapping
 		}
 
 		function Search-Configuration {
 			param([string] $path)
 			if($path) {
-                ($mapP, $vsvP) = Search-Configuration(Split-Path $path -Parent)
-                ($map, $vsv) = Get-DevEnvConfig($path)
+                $mapP = Search-Configuration(Split-Path $path -Parent)
+                $map = Get-DevEnvConfig($path)
 	        }
-
-            $vsv = if($vsp) { $vsp } else { $vsvP }
-            return ($mapP + $map, $vsv)
+			if($mapP) {
+				foreach($key in $map.Keys) {
+					$mapP[$key] = $map[$key]
+				}
+				return $mapP
+			}
+			else {
+				return $map
+			}
         }
 
-		($labelMap, $vsversion) = Search-Configuration(Get-Location)
-		foreach($map in $labelMap) {
-			$label = $map.Keys[0]
-			$path = $map[$label]
+		$labelMap = Search-Configuration($cd)
+		foreach($label in $labelMap.Keys) {
+			$path = [string]$labelMap[$label]
 			if($path.StartsWith("#"))
 			{
 				$path = $path.Substring(1)
@@ -226,8 +225,10 @@ function Apply-Configuration
 			if ($isModule) { Export-ModuleMember $label }
 			Set-Alias -Name $label -Value "set_$($label)" -Scope Global
 		}
-        return ($labelMap, $vsversion)
-	} catch{}
+        return $labelMap
+	} catch{
+		$_
+	}
 	finally {
 		set-location $cd >$null
 	}
@@ -723,9 +724,7 @@ function Get-GitStatus {
 			ForEach-Object { $_.Trim() }
 
 		# Status includes VT escape sequences for coloured text
-		$status = ($gitStatus) `
-			? "$esc[$($red)mCHECK$esc[0m" `
-			: "$esc[$($green)mOK$esc[0m"
+		$status = if($gitStatus) { "$esc[$($red)mCHECK$esc[0m" } else { "$esc[$($green)mOK$esc[0m" }
 
 		# For some reason, the git status --porcelain output returns 
 		# two '?' chars for untracked changes, when all other statuses 
@@ -755,6 +754,76 @@ function Enable-dotnet-TabCompletion {
 	}
 }
 
+function Measure-InternetSpeed
+{
+	param
+	(
+		[int] $iterations = 1
+	)
+
+	$DownloadURL = "https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-win64.zip"
+	$DownloadLocation = "$($Env:ProgramData)\SpeedtestCLI"
+
+	try {
+		if (!(Test-Path $DownloadLocation)) {
+			new-item $DownloadLocation -ItemType Directory -force
+			Invoke-WebRequest -Uri $DownloadURL -OutFile "$($DownloadLocation)\speedtest.zip"
+			Expand-Archive "$($DownloadLocation)\speedtest.zip" -DestinationPath $DownloadLocation -Force
+		}
+	}
+	catch {
+		write-host "The download and extraction of SpeedtestCLI failed. Error: $($\_.Exception.Message)"
+		exit 1
+	}
+	
+	if($iterations -eq 1) {
+		& "$($DownloadLocation)\speedtest.exe" --accept-license --accept-gdpr
+	}
+	else {
+		[PSCustomObject]$SpeedtestObj = @{
+			downloadspeed = 0
+			uploadspeed   = 0
+			packetloss    = 0
+			Jitter        = 0
+			Latency       = 0
+		}
+
+		Write-Host "Measuring internet speed over $iterations iterations"
+
+		1..$iterations | %	{
+			$SpeedtestResults = & "$($DownloadLocation)\speedtest.exe" --format=json --accept-license --accept-gdpr
+			$SpeedtestResults = $SpeedtestResults | ConvertFrom-Json
+
+			[PSCustomObject]$SpeedtestObj = @{
+				downloadspeed = $SpeedtestResults.download.bandwidth + $SpeedtestObj.downloadspeed
+				uploadspeed   = $SpeedtestResults.upload.bandwidth + $SpeedtestObj.uploadspeed
+				packetloss    = $SpeedtestResults.packetLoss + $SpeedtestObj.packetloss
+				Jitter        = $SpeedtestResults.ping.jitter + $SpeedtestObj.Jitter
+				Latency       = $SpeedtestResults.ping.latency + $SpeedtestObj.Latency
+			}
+
+			Write-Host -NoNewLine "*"
+		}
+		Write-Host
+	
+		$downloadspeed = [math]::Round($SpeedtestObj.downloadspeed * 8 / $iterations / 1MB, 2)
+		$uploadspeed = [math]::Round($SpeedtestObj.uploadspeed * 8 / $iterations / 1MB, 2)
+		
+		@{
+			Downloadspeed = "$downloadspeed Mbps"
+			Uploadspeed   = "$uploadspeed Mbps"
+			Latency       = "$($SpeedtestObj.Latency / $iterations) ms"
+			Packetloss    = "$($SpeedtestObj.packetloss/ $iterations) %"
+			Isp           = $SpeedtestResults.isp
+			ExternalIP    = $SpeedtestResults.interface.externalIp
+			InternalIP    = $SpeedtestResults.interface.internalIp
+			UsedServer    = $SpeedtestResults.server.host
+			Jitter        = $SpeedtestObj.Jittter / $iterations
+			iterations    = $iterations
+		}
+	}
+}
+
 function Get-Commands {
 	[PsObject[]]$HelpArray = @()
 	$HelpArray += [pscustomobject]@{ Command = "Clean-Solution"  			; Shorthand = "cln"; Description = "Clean solution structure from artifacts" }
@@ -766,6 +835,7 @@ function Get-Commands {
 	$HelpArray += [pscustomobject]@{ Command = "Get-CommandDefinition"		; Shorthand = "which"; Description = "Show location of command" }
 	$HelpArray += [pscustomobject]@{ Command = "Get-GitRepositories"		; Description = "List Git repositories" }
 	$HelpArray += [pscustomobject]@{ Command = "Get-PublicIP"      			; Shorthand = "whereami"; Description = "Shows your public IP" }
+	$HelpArray += [pscustomobject]@{ Command = "Measure-InternetSpeed"		; Description = "Measure internet download and upload speed" }
 	$HelpArray += [pscustomobject]@{ Command = "MSBuild"         			; Description = "Shortcut to msbuild" }
 	$HelpArray += [pscustomobject]@{ Command = "Notepad"         			; Shorthand = "edit"; Description = "Opens preferred text editor" }
 	$HelpArray += [pscustomobject]@{ Command = "Open-WindowsExplorer"		; Shorthand = "we"; Description = "Open Windows Explorer in the current directory" }
@@ -936,6 +1006,7 @@ function Export {
 	Export-ModuleMember "Invoke-Initialize"
 	Export-ModuleMember "Is-Admin"
 	Export-ModuleMember "License"
+	Export-ModuleMember "Measure-InternetSpeed"
 	Export-ModuleMember "New-Terminal"
 	Export-ModuleMember "Open-WindowsExplorer"
 	Export-ModuleMember "Refresh-Env"

@@ -2,6 +2,9 @@
 
 public record struct TypeName(string Name)
 {
+    public string GetTitleCase()
+        => Name.ToTitleCase();
+
     public static implicit operator String(TypeName name) => name.Name;
 }
 
@@ -10,7 +13,7 @@ public static class StringExtensions
     public static string ToTitleCase(this string name)
     {
         var parts = name.Split(new[] { '_', ' ', '-', '.', ',' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        return string.Join(string.Empty, parts.Select(w => char.ToUpper(name[0]) + name[1..]));
+        return string.Join(string.Empty, parts.Select(w => char.ToUpper(w[0]) + w[1..]));
     }
 
     public static string ToCamelCase(this string name)

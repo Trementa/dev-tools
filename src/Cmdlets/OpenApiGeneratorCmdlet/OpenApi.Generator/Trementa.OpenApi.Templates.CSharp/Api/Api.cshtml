@@ -1,11 +1,13 @@
 ﻿@using Microsoft.OpenApi.Models
+@using OpenApi.Generator.CSharp
+@using OpenApi.Generator.CSharp.SyntaxProviders
 @using Trementa.OpenApi.Generator.CSharp
 @using Trementa.OpenApi.Generator.Generators.Models
-@model ApiTemplateModel
+@using Trementa.OpenApi.Generator.CSharp.SyntaxProviders
 @inherits ApiTemplatePage
 @{
     DisableEncoding = true;
-    var apiClassName = GetClassName();
+    var className = GetClassName("Api");
 }
 
 using System;
@@ -17,12 +19,83 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace @GetNamespace();
+namespace @GetNamespace("Api");
 
-@GetUsings("", "Api", "Configuration", "Client.Request", "Types")
-using Model;
-
-public partial class @(apiClassName) : BaseApi<@(apiClassName)>
+@foreach(var usingRef in GetUsings("Api", "Configuration", "Client.Request", "Types"))
 {
-@{ await IncludeAsync("Constructor", Model); }
+@:using @usingRef;
+}
+
+public partial class @(className) : BaseApi<@(className)>
+{
+    public @(className)(IConnection connection, ILogger<@(className)> logger) : base(connection, logger)
+    {}
+
+@foreach (var (path, pathItem) in GetPaths())
+{
+    @foreach(var (httpType, operation) in pathItem.Operations)
+    {
+        var operationId = ToTitleCase(operation.OperationId); //.ToTitleCase();
+
+    string ToTitleCase(string name)
+    {
+        var parts = name.Split(new[] { '_', ' ', '-', '.', ',' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return char.ToUpper(parts[^1][0]) + parts[^1][1..];
+    }
+
+
+        var returnType = operation.Responses.GetReturnType();
+        var operationArguments = operation.GetOperationArguments();
+        var requestParameters = operation.GetRequestBodyParameters();
+        var requestParametersJoined = requestParameters.JoinRequestTypes();
+
+        var functionParameters = (requestParametersJoined == null ? 
+            operationArguments : 
+            operationArguments.Append(requestParametersJoined)).OrderByDescending(p => p.IsRequired);
+
+        var functionParametersFormatted = string
+            .Join(", ", functionParameters
+            .Select(p => $"{p.Schema} {p.Name}")
+            .Append("CancellationToken cancellationToken = default"));
+
+   @:public async Task<@(returnType)> @(operationId)(@(functionParametersFormatted))
+   @:    => await Execute<@returnType>(HttpMethod.@(httpType), "@(path)",
+   @:        async rb => await rb
+   foreach (var parameter in operationArguments)
+   {
+       var parameterType = parameter.In switch
+       {
+           ArgumentLocation.Query => "Query",
+           ArgumentLocation.Header => "Header",
+           ArgumentLocation.Path => "Path",
+           ArgumentLocation.Cookie => "Cookie",
+           var param => param.ToString()
+       };
+
+   @:        .Add@(parameterType)Parameter("@(parameter.OriginalName)", @(parameter.Name))
+   }
+   if(requestParameters.Count() > 1)
+   {
+   @:        .SetRequestBodyMediaType("@(operation.GetRequestBodyMediaType())")
+   }
+   foreach (var requestParameter in requestParameters)
+   {
+   @:        .AddRequestBody(nameof(@(requestParameter.Name)), @(requestParameter.Name), "@(requestParameter.MediaType)")
+   }
+   foreach(var response in operation.GetResponseTypes())
+   {
+       if(string.IsNullOrWhiteSpace(response.MediaType))
+       {
+   @:        .AddResponseMap<@response.Type>("@response.StatusCode")
+       }
+       else
+       {
+   @:        .AddResponseMap<@response.Type>("@response.StatusCode", "@response.MediaType")
+       }
+   }
+   @:        .GetAwaiter()
+   @:    , cancellationToken);
+   @:
+   }
+ }
 }

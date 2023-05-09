@@ -5,7 +5,7 @@ using System.Security;
 
 namespace OpenApi.Generator.Test;
 
-public static class Marshal2
+public static class Marshal
 {
     internal const String OLEAUT32 = "oleaut32.dll";
     internal const String OLE32 = "ole32.dll";

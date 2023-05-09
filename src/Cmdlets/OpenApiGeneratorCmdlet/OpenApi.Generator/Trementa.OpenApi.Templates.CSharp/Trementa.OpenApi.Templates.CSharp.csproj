@@ -17,10 +17,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <EmbeddedResource Remove="Api\Constructor.cshtml" />
+	  <EmbeddedResource Remove="Api\Servers.cshtml" />
+	  <EmbeddedResource Remove="Models\Model.cshtml" />
+	  <EmbeddedResource Remove="Models\ModelClass.cshtml" />
+	  <EmbeddedResource Remove="Summary.cshtml" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <None Remove="Api\Api.cshtml" />
-	  <None Remove="Api\Constructor.cshtml" />
-	  <None Remove="Api\Operations.cshtml" />
-	  <None Remove="Api\Servers.cshtml" />
 	  <None Remove="LicenseHeader.lic" />
 	</ItemGroup>
 
@@ -29,19 +34,21 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="Microsoft.OpenApi" Version="1.6.3" />
+	  <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.3" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\Trementa.OpenApi.Generator\Trementa.OpenApi.Generator.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <EmbeddedResource Update="Api\Constructor.cshtml">
+	  <None Update="Api\Constructor.cshtml">
 	    <LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
-	  </EmbeddedResource>
-	  <EmbeddedResource Update="Api\Servers.cshtml">
+	  </None>
+	  <None Update="Api\Servers.cshtml">
 	    <LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
-	  </EmbeddedResource>
-	  <EmbeddedResource Update="Api\Operations.cshtml">
-	    <LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
-	  </EmbeddedResource>
+	  </None>
 	  <EmbeddedResource Update="Api\Api.cshtml">
 	    <LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
 	  </EmbeddedResource>

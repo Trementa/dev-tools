@@ -74,7 +74,7 @@ public record Operation(OperationType OperationType, OpenApiOperation ApiOperati
                     Name = validVariableName.ScrubbedName,
                     IsNullable = true, //requestParam.IsNullable,
                     IsRequired = false,
-                    In = FunctionArgument.ArgumentLocation.Request
+                    In = ArgumentLocation.Request
                 };
             }
         }
@@ -96,11 +96,11 @@ public record Operation(OperationType OperationType, OpenApiOperation ApiOperati
                 IsRequired = parameter.Required,
                 Description = parameter.Description,
                 In = parameter.In switch {
-                    ParameterLocation.Cookie => FunctionArgument.ArgumentLocation.Cookie,
-                    ParameterLocation.Header => FunctionArgument.ArgumentLocation.Header,
-                    ParameterLocation.Path => FunctionArgument.ArgumentLocation.Path,
-                    ParameterLocation.Query => FunctionArgument.ArgumentLocation.Query,
-                    _ => FunctionArgument.ArgumentLocation.Unknown
+                    ParameterLocation.Cookie =>ArgumentLocation.Cookie,
+                    ParameterLocation.Header =>ArgumentLocation.Header,
+                    ParameterLocation.Path => ArgumentLocation.Path,
+                    ParameterLocation.Query => ArgumentLocation.Query,
+                    _ => ArgumentLocation.Unknown
                 }
             };
         }

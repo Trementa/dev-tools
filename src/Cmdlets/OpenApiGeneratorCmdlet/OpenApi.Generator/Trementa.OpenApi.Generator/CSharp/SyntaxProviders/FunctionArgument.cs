@@ -1,7 +1,12 @@
-﻿namespace Trementa.OpenApi.Generator.CSharp.SyntaxProviders;
+﻿using Microsoft.OpenApi.Models;
+using Trementa.OpenApi.Generator.Generators.Models;
 
-public struct FunctionArgument
+namespace Trementa.OpenApi.Generator.CSharp.SyntaxProviders;
+public enum ArgumentLocation { Query, Header, Path, Cookie, Request, Body, Unknown };
+
+public record FunctionArgument
 {
+    public OpenApiSchema Schema { get; set; }
     public string Type { get; set; }
     public string Name { get; set; }
     public string OriginalName { get; set; }
@@ -9,9 +14,8 @@ public struct FunctionArgument
     public bool IsRequired { get; set; }
     public string Description { get; set; }
 
-    public enum ArgumentLocation { Query, Header, Path, Cookie, Request, Unknown };
 
-    public ArgumentLocation In { get; set; }
+    public virtual ArgumentLocation In { get; set; }
 
     public override string ToString()
     {
@@ -20,3 +24,10 @@ public struct FunctionArgument
         return $"{Type} {Name}{(IsRequired ? "" : " = default")}";
     }
 }
+
+public record RequestBodyParameter : FunctionArgument
+{
+    public string MediaType { get; set; }
+    public override ArgumentLocation In => ArgumentLocation.Body;
+}
+

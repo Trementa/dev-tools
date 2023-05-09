@@ -6,7 +6,7 @@ public static class Program
 {
     public static void Main()
     {
-        var projectContainer = new ProjectContainer("t", "D:\temp");
+        var projectContainer = new ProjectContainer("OpenApi.Generator.Test_DoNotUseNow", "D:\\temp\\A_TEST.OpenApi.Generator.Test");
 
         Trementa.OpenApi.Generator.Program.Main(
            "-o", projectContainer.ProjectPath,

@@ -4,7 +4,7 @@
 .Synopsis
 	Setup new system
 .Description
-	Installs all applications and dependencies specified
+	Starts a workflow that installs all applications and dependencies specified in the workflow script.
 	
 .License
 	MIT License
@@ -32,52 +32,5 @@
 
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
 
-try {
-	choco config get cacheLocation
-}
-catch {
-	Write-Output "Chocolatey not detected, trying to install"
-	iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-}
-
-choco install HypervisorPlatform -y --source WindowsFeatures
-choco install VirtualMachinePlatform -y --source WindowsFeatures
-choco install Microsoft-Hyper-V-All -y --source WindowsFeatures
-choco install Containers -y --source WindowsFeatures
-choco install Containers-DisposableClientVM -y --source WindowsFeatures
-choco install Microsoft-Windows-Subsystem-Linux -y --source WindowsFeatures
-
-choco install wsl2 -y
-choco install wsl-ubuntu-2004 -y
-choco install notepadplusplus -y
-choco install nodejs -y
-choco install git -y
-choco install docker-desktop -y
-choco install visualstudio2022community-preview --pre --package-parameters '--allWorkloads --includeRecommended --includeOptional --passive --locale en-US' -y
-choco install vscode -y
-choco install sql-server-management-studio -y
-choco install ditto -y
-choco install office2019proplus -y
-choco install teams -y
-choco install spotify -y
-choco install paint.net -y
-choco install powershell-core -y
-choco install microsoft-windows-terminal -y
-
-irm get.scoop.sh -outfile 'install.ps1'
-iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
-scoop install winget
-scoop bucket add extras
-scoop install windows-terminal
-
-
-Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
-     param($commandName, $wordToComplete, $cursorPosition)
-         dotnet complete --position $cursorPosition "$wordToComplete" | ForEach-Object {
-            [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
-         }
-}
-
-reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v HideFileExt /t REG_DWORD /d 0 /f
-show-windowsdeveloperlicenseregistration
-reg add HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock /t REG_DWORD /f /v AllowDevelopmentWithoutDevLicense /d 1
+Import-Module PSWorkflow
+Get-Job -Name Create-DevelopmentEnvironment | Resume-Job -Wait

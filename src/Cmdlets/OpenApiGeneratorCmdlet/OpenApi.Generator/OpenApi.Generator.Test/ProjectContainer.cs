@@ -10,7 +10,7 @@ public class ProjectContainer
     public bool OverwriteExisting;
     public bool CleanFolder;
 
-    public ProjectContainer(string projectName, string destinationFolder, bool overwriteExisting = false, bool cleanFolder = false)
+    public ProjectContainer(string projectName, string destinationFolder = null, bool overwriteExisting = false, bool cleanFolder = false)
     {
         OverwriteExisting = overwriteExisting;
         CleanFolder = cleanFolder;
@@ -20,17 +20,17 @@ public class ProjectContainer
 
     public void AddToSolution()
     {
-        var dte = (DTE)Marshal2.GetActiveObject("VisualStudio.DTE.17.0");
+        var dte = (DTE)Marshal.GetActiveObject("VisualStudio.DTE.17.0");
         dte.Solution.AddFromFile(ProjectPath);
     }
 
     protected string GetProjectPath(string projectName, string destinationFolder)
     {
-        var dte = (DTE)Marshal2.GetActiveObject("VisualStudio.DTE.17.0");
+        var dte = (DTE)Marshal.GetActiveObject("VisualStudio.DTE.17.0");
         foreach (Project p in dte.Solution.Projects)
         {
             if (StringComparer.CurrentCultureIgnoreCase.Compare(p.Name, projectName) == 0)
-                return p.FullName;
+                return Path.GetDirectoryName(p.FullName);
         }
 
         return Path.Combine(destinationFolder, projectName);
@@ -40,10 +40,8 @@ public class ProjectContainer
     {
         if (!CleanFolder) return;
 
-        var projectFolder = new DirectoryInfo(Path.GetDirectoryName(projectPath));
+        var projectFolder = new DirectoryInfo(projectPath);
         foreach (DirectoryInfo dir in projectFolder.EnumerateDirectories())
-        {
             dir.Delete(true);
-        }
     }
 }

@@ -89,5 +89,5 @@ If this file is located somewhere in the path from the root dev-tools automatica
 }
 ```
 
-Each line defines a short-cut.\
+Each line defines a shortcut.\
 Wildcards and regular expressions are allowed.
