@@ -37,7 +37,6 @@ param(
 	[Switch] $continue,
 	[Switch] $exit
 )
-$defaultRoot = if($defaultRoot){resolve-path $defaultRoot}else{get-location}
 
 <#
 .SYNOPSIS
@@ -641,37 +640,57 @@ function Git-Diff {
 }
 
 function Clean-Solution {
-	param
-	(
-		[string] $solution
+	param(
+		[Parameter(ParameterSetName="Solution")]
+		[string] $solution,
+		[Parameter(ParameterSetName="Solutions")]
+		[switch] $all
 	)
 
-	if (!$solution) { $solution = Select-Solution }
-	if (!$solution) { return }
+	function Cln-Sln {
+		param([string] $solution)
 	
-	$dir = Split-Path "$solution"
-	"Cleaning $solution"
-	Push-Location $dir
-	$projects = Get-Content "$solution" |
-	Select-String 'Project\(' |
-	ForEach-Object {
-		$projectParts = $_ -Split '[,=]' | ForEach-Object { $_.Trim('[ "{}]') };
-		New-Object PSObject -Property @{
-			Name = $projectParts[1];
-			File = $projectParts[2];
-			Guid = $projectParts[3]
-		} 
-	} | Where -Property File -like "*.*proj"
-	 
-	foreach ($project in $projects) {
-		$path = Split-Path $project.File
-		$bin = Join-Path -Path $path -ChildPath bin
-		$obj = Join-Path -Path $path -ChildPath obj
-		$debug = Join-Path -Path $path -ChildPath debug
-		$release = Join-Path -Path $path -ChildPath release
-		$bin, $obj, $debug, $release | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
+		Write-Host "Cleaning solution $($solution)"
+		$dir = Split-Path "$solution"
+		Push-Location $dir
+		$projects = Get-Content "$solution" |
+		Select-String 'Project\(' |
+		ForEach-Object {
+			$projectParts = $_ -Split '[,=]' | ForEach-Object { $_.Trim('[ "{}]') };
+			New-Object PSObject -Property @{
+				Name = $projectParts[1];
+				File = $projectParts[2];
+				Guid = $projectParts[3]
+			} 
+		} | Where -Property File -like "*.*proj"
+		 
+		Write-Host "Cleaning projects"
+		foreach ($project in $projects) {
+			$path = Split-Path $project.File
+			Write-Host "`t$($path)"
+			$bin = Join-Path -Path $path -ChildPath bin -ErrorAction SilentlyContinue
+			$obj = Join-Path -Path $path -ChildPath obj -ErrorAction SilentlyContinue
+			$debug = Join-Path -Path $path -ChildPath debug -ErrorAction SilentlyContinue
+			$release = Join-Path -Path $path -ChildPath release -ErrorAction SilentlyContinue
+			$bin, $obj, $debug, $release | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
+		}
+		Pop-Location
 	}
-	Pop-Location
+
+	switch($PSCmdlet.ParameterSetName) {
+		"Solution" {
+			if (!$solution) { $solution = Select-Solution }
+			if (!$solution) { return }
+			Cln-Sln $solution
+		}
+		"Solutions" {
+			Get-ChildItem *.sln -Recurse | ForEach-Object { 
+			Cln-Sln $_ 
+			$line = "-" * $Host.UI.RawUI.BufferSize.Width
+			Write-Host $line
+			}
+		}
+	}
 }
 
 function Open-WindowsExplorer {
@@ -691,8 +710,42 @@ function unblock {
 	Remove-ACL $path -Recurse
 }
 
-function Get-GitRepositories {
-	Get-ChildItem . -Attributes Directory+Hidden -ErrorAction SilentlyContinue -Filter ".git" -Recurse | ForEach-Object { Write-Host $_.Parent.Name }
+<#
+.SYNOPSIS
+	Select git repository
+#>
+function Get-Repos {
+	param([string] $path = '.')
+
+	$global:counter = 1;
+	$cd = (Get-Location).Path.Length
+	$directories = @(Get-ChildItem $path -Attributes Directory+Hidden -ErrorAction SilentlyContinue -Filter ".git" -Recurse |
+					 Select-Object @{Name = "Id"; Expression = { $global:counter; $global:counter++ }},
+						 FullName, 
+						 @{Name = "Folder"; Expression = { $_.Parent.FullName.SubString($cd) } }, 
+						 @{Name = "Repository"; Expression = {git --git-dir="$($_.Parent.FullName)/.git" --work-tree="$($_.Parent.FullName)" remote get-url origin}},
+						 @{Name = "Branch"; Expression = {git --git-dir="$($_.Parent.FullName)/.git" --work-tree="$($_.Parent.FullName)" rev-parse --abbrev-ref HEAD}})
+
+	if ($directories.Count -eq 0) {
+		"No git repositories found"
+		return
+	}
+
+	if ($directories.Count -gt 1) {
+		$directories | Format-Table -Property @{Label = "#"; Expression = { $_.Id } }, Repository, Branch, Folder -AutoSize | Out-Host
+
+		while($value -eq $NULL -or $value -gt $directories.Count -or $value -le 0) {
+			$input = Read-Host "Select repository (1-$($directories.Count))"
+			if (!$input) {
+				return $null
+			}
+			$value = $input -as [Int]		
+		}
+	}
+	else {
+		$value = 1
+	}
+	push-location $($directories[$value - 1].FullName) -StackName devstack 						
 }
 
 function Get-GitStatus {
@@ -833,7 +886,7 @@ function Get-Commands {
 	$HelpArray += [pscustomobject]@{ Command = "Edit-Solution"   			; Shorthand = "sln"; Description = "List solution files below the current folder, open selected" }
 	$HelpArray += [pscustomobject]@{ Command = "Git-Diff"        			; Shorthand = "gd"; Description = "List the latest commits, open difftool in folder mode for selected" }
 	$HelpArray += [pscustomobject]@{ Command = "Get-CommandDefinition"		; Shorthand = "which"; Description = "Show location of command" }
-	$HelpArray += [pscustomobject]@{ Command = "Get-GitRepositories"		; Description = "List Git repositories" }
+	$HelpArray += [pscustomobject]@{ Command = "Get-Repos"					; Description = "List Git repositories" }
 	$HelpArray += [pscustomobject]@{ Command = "Get-PublicIP"      			; Shorthand = "whereami"; Description = "Shows your public IP" }
 	$HelpArray += [pscustomobject]@{ Command = "Measure-InternetSpeed"		; Description = "Measure internet download and upload speed" }
 	$HelpArray += [pscustomobject]@{ Command = "MSBuild"         			; Description = "Shortcut to msbuild" }
@@ -947,7 +1000,7 @@ function Set-ProfileLoader {
 	}	
 }
 
-function License {
+function Show-License {
 	'
 MIT License
 
@@ -994,7 +1047,7 @@ function Export {
 	Export-ModuleMember "Edit-Profile"
 	Export-ModuleMember "Edit-Solution"
 	Export-ModuleMember "Get-CommandDefinition"
-	Export-ModuleMember "Get-GitRepositories"
+	Export-ModuleMember "Get-Repos"
 	Export-ModuleMember "Get-GitStatus"
 	Export-ModuleMember "Get-Help"
 	Export-ModuleMember "Get-TerminalPath"
@@ -1005,7 +1058,7 @@ function Export {
 	Export-ModuleMember "Install-Tools"
 	Export-ModuleMember "Invoke-Initialize"
 	Export-ModuleMember "Is-Admin"
-	Export-ModuleMember "License"
+	Export-ModuleMember "Show-License"
 	Export-ModuleMember "Measure-InternetSpeed"
 	Export-ModuleMember "New-Terminal"
 	Export-ModuleMember "Open-WindowsExplorer"
@@ -1062,8 +1115,14 @@ function Install-Other
 	else { "Run script in elevated mode to install external modules" }
 }
 
+function Ask-Location
+{
+	$defaultRoot = if($defaultRoot){resolve-path $defaultRoot} else {get-location}
+}
+
 function Install-Tools {
-	License
+	Show-License
+	Ask-Location
 
 	"This will install $($(Get-Item $PSCommandPath).Basename) modules version $($moduleVersion)"
 	if (!$IsAdmin) {

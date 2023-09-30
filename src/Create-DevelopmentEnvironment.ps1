@@ -101,8 +101,10 @@ InstallWithCheck pwsh -y
 InstallWithCheck visualstudio2022community-preview -y --pre --package-parameters '--allWorkloads --includeRecommended --includeOptional --passive --locale en-US'
 InstallWithCheck vscode -y
 InstallWithCheck sql-server-management-studio -y
-InstallWithCheck spotify -y
+InstallWithCheck sqlitebrowser -y
+InstallWithCheck postman -y
 InstallWithCheck paint.net -y
+InstallWithCheck spotify -y
 InstallWithCheck telegram -y
 InstallWithCheck messenger -y
 
