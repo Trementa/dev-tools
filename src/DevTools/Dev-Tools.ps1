@@ -233,6 +233,17 @@ function Apply-Configuration
 	}
 }
 
+function Show-Configuration
+{
+	get-alias | Where-Object -Property Source -EQ Dev-Tools | Select-Object -Property Version,DisplayName
+}
+
+function Remove-Configuration
+{
+	param([string] $alias)
+	remove-alias $alias	
+}
+
 <#
 .SYNOPSIS
 	Method that creates the window title
